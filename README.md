@@ -2,6 +2,10 @@
 
 Enhance your Google Calendar experience with Date Prefixer! This extension adds intuitive time indicators to your events, making it easier than ever to gauge the proximity of your appointments at a glance.
 
+## Install
+Chrome Web Store: 
+https://chromewebstore.google.com/detail/google-calendar-date-pref/hceoajkodhbjkoiopgehogkfplgpmpdj
+
 ## Key Features:
 
 1. **Dynamic Date Prefixes**: Automatically adds time indicators to your Google Calendar events.
