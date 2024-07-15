@@ -101,7 +101,6 @@ function parseDateFromString(dateString) {
   }
   else {
     //Fixed a parsing issue where the date is in front of the event name.
-    //e.g. September 28, 2024 at 22:00 to September 29, 2024 at 00:00, ⚽️ Chelsea v Brighton & Hove Albion, Calendar: Premier League, Location: Stamford Bridge, London,
     const regex = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})\b/g;
     const englishMatch2 = regex.exec(dateString);
     if (englishMatch2){
