@@ -87,9 +87,9 @@ function parseDateFromString(dateString) {
   }
 
   // English date format: July 10, 2024
-  const englishMatch = dateString.match(/(\w+)\s+(\d{1,2}).*?\s+(\d{4})/);
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const englishMatch = dateString.match(/(?:.*,\s)(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:\s[–\d\s\w]*)?,\s+(\d{4})$/i);
   if (englishMatch) {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const monthIndex = months.indexOf(englishMatch[1]);
     if (monthIndex !== -1) {
       return new Date(
@@ -97,6 +97,20 @@ function parseDateFromString(dateString) {
         monthIndex,
         parseInt(englishMatch[2])
       );
+    }
+  }
+  else {
+    const regex = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})\b/g;
+    const englishMatch2 = regex.exec(dateString);
+    if (englishMatch2){
+      const monthIndex2 = months.indexOf(englishMatch2[1]);
+    if (monthIndex2 !== -1) {
+        return new Date(
+          parseInt(englishMatch2[3]),
+          monthIndex2,
+          parseInt(englishMatch2[2])
+        );
+      }
     }
   }
 
