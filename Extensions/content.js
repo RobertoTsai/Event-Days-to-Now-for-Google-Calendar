@@ -1,6 +1,5 @@
 // content.js
 const DEBOUNCE_DELAY = 600; // milliseconds
-const REAPPLY_DELAY = 2000; // milliseconds
 
 let settings = {
   enableExtension: true,
@@ -64,6 +63,7 @@ function formatTimeDifference(dayDifference, hourDifference, isAllDay, isToday, 
   
   return `${dayDifference}d`;
 }
+
 function parseDateFromString(dateString) {
   // Chinese date format: 2024年7月10日
   // Japanese date format: 2024年 7月 10日
@@ -135,23 +135,19 @@ function addDatePrefixToEvents() {
   const eventElements = document.querySelectorAll('[data-eventid]');
 
   eventElements.forEach((eventElement) => {
-    let titleElement = eventElement.querySelector('.WBi6vc') || eventElement;
+    let titleElement = eventElement.querySelector('.WBi6vc') || eventElement.querySelector('[role="button"]') || eventElement;
     if (!titleElement) return;
 
     let eventDate;
     let isAllDay = false;
     
-    const ariaLabel = eventElement.getAttribute('aria-label') || eventElement.querySelector('.XuJrye')?.textContent;
+    const ariaLabel = eventElement.getAttribute('aria-label') || titleElement.getAttribute('aria-label') || eventElement.querySelector('.XuJrye')?.textContent;
     if (ariaLabel) {
-      // Extract date string
       const dateString = ariaLabel;
       eventDate = parseDateFromString(dateString);
-
-      // Check if it's an all-day event
       isAllDay = !ariaLabel.match(/\d{1,2}:\d{2}/);
 
       if (!isAllDay && eventDate) {
-        // If not an all-day event, extract time
         const timeMatch = ariaLabel.match(/(\d{1,2}):(\d{2})/);
         if (timeMatch) {
           eventDate.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]));
@@ -170,87 +166,79 @@ function addDatePrefixToEvents() {
 
     const prefix = formatTimeDifference(dayDifference, hourDifference, isAllDay, isToday, isTomorrow);
 
-    if (prefix) {
-      const newPrefix = `(${prefix}) `;
-      if (!titleElement.textContent.startsWith(newPrefix)) {
-        const originalText = titleElement.textContent.replace(/^\([^)]+\) /, '');
-        titleElement.textContent = newPrefix + originalText;
+    // Check for existing prefix span
+    let prefixSpan = eventElement.querySelector('.date-prefix-span');
 
-        // Reapply prefix after a delay
-        setTimeout(() => {
-          if (!titleElement.textContent.startsWith(newPrefix)) {
-            titleElement.textContent = newPrefix + titleElement.textContent.replace(/^\([^)]+\) /, '');
+    if (prefix) {
+      const newPrefix = `${prefix}`;
+      
+      if (prefixSpan) {
+        // Update existing prefix span if content has changed
+        if (prefixSpan.textContent !== newPrefix) {
+          prefixSpan.textContent = newPrefix;
+        }
+        // Update class based on event type
+        prefixSpan.className = isAllDay ? 'date-prefix-span date-prefix-all-day' : 'date-prefix-span date-prefix-timed';
+      } else {
+        // Create new prefix span if it doesn't exist
+        prefixSpan = document.createElement('span');
+        prefixSpan.className = isAllDay ? 'date-prefix-span date-prefix-all-day' : 'date-prefix-span date-prefix-timed';
+        prefixSpan.textContent = newPrefix;
+    
+        if (isAllDay) {
+          // For all-day events, add prefix before the title text
+          if (titleElement.childNodes.length > 0) {
+            titleElement.insertBefore(prefixSpan, titleElement.childNodes[0]);
+          } else {
+            titleElement.appendChild(prefixSpan);
           }
-        }, REAPPLY_DELAY);
+        } else {
+          // For non-all-day events, add prefix before the time span
+          const timeSpan = eventElement.querySelector('.DvyQhe.BdCDHc');
+          if (timeSpan) {
+            timeSpan.parentNode.insertBefore(prefixSpan, timeSpan);
+          } else {
+            // If time span is not found, fall back to inserting before the title
+            if (titleElement.childNodes.length > 0) {
+              titleElement.insertBefore(prefixSpan, titleElement.childNodes[0]);
+            } else {
+              titleElement.appendChild(prefixSpan);
+            }
+          }
+        }
       }
-    } else {
-      // Remove prefix for today's all-day events and past events
-      titleElement.textContent = titleElement.textContent.replace(/^\([^)]+\) /, '');
+    } else if (prefixSpan) {
+      // Remove prefix span if it exists but shouldn't
+      prefixSpan.remove();
     }
+
+    // Ensure the title text doesn't contain the prefix
+    titleElement.childNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        node.textContent = node.textContent.replace(/^\([^)]+\)\s*/, '');
+      }
+    });
   });
 }
 
 function removeDatePrefixes() {
-  const eventElements = document.querySelectorAll('[data-eventid]');
-  eventElements.forEach((eventElement) => {
-    let titleElement = eventElement.querySelector('.WBi6vc') || eventElement;
-    if (titleElement) {
-      titleElement.textContent = titleElement.textContent.replace(/^\([^)]+\) /, '');
-    }
-  });
+  const prefixSpans = document.querySelectorAll('.date-prefix-span');
+  prefixSpans.forEach(span => span.remove());
 }
 
-const debouncedAddDatePrefix = debounce(() => {
-  addDatePrefixToEvents();
-  // Reapply after a delay to ensure it persists
-  setTimeout(addDatePrefixToEvents, REAPPLY_DELAY);
-}, DEBOUNCE_DELAY);
-
-// Use MutationObserver to detect changes in the DOM
-const observer = new MutationObserver((mutations) => {
-  let shouldUpdate = false;
-  mutations.forEach((mutation) => {
-    if (mutation.type === 'childList' || 
-        (mutation.type === 'attributes' && mutation.attributeName === 'data-eventid')) {
-      shouldUpdate = true;
-    }
-  });
-  if (shouldUpdate) {
-    debouncedAddDatePrefix();
-  }
-});
-
-// Start observing the document with the configured parameters
-observer.observe(document.body, { 
-  childList: true, 
-  subtree: true, 
-  attributes: true, 
-  attributeFilter: ['data-eventid'] 
-});
-
-// Initial run
+// Initial load of settings and application of prefixes
 loadSettings().then(() => {
-  debouncedAddDatePrefix();
+  addDatePrefixToEvents();
 });
 
-// Add event listener for URL changes
-let lastUrl = location.href; 
-new MutationObserver(() => {
-  const url = location.href;
-  if (url !== lastUrl) {
-    lastUrl = url;
-    debouncedAddDatePrefix();
-  }
-}).observe(document, {subtree: true, childList: true});
+// Set up MutationObserver to watch for changes
+const observer = new MutationObserver(debounce(() => {
+  loadSettings().then(() => {
+    addDatePrefixToEvents();
+  });
+}, DEBOUNCE_DELAY));
 
-// Run the function when switching tabs
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    loadSettings().then(() => {
-      debouncedAddDatePrefix();
-    });
-  }
-});
+observer.observe(document.body, { childList: true, subtree: true });
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener(
@@ -262,3 +250,12 @@ chrome.runtime.onMessage.addListener(
     }
   }
 );
+
+// Run the function when switching tabs
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    loadSettings().then(() => {
+      addDatePrefixToEvents();
+    });
+  }
+});
