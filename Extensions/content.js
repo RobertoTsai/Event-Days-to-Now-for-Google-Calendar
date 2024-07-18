@@ -30,6 +30,79 @@ function debounce(func, wait) {
   };
 }
 
+// 新增的初始化函数
+function initializeExtension() {
+  console.log("Initializing extension...");
+  
+  // 设置一个标志来跟踪是否已经初始化
+  let initialized = false;
+
+  // 创建一个 MutationObserver 来监视 DOM 变化
+  const observer = new MutationObserver((mutations, obs) => {
+    // 检查页面是否已经加载完毕
+    const calendarLoaded = document.querySelector('[role="grid"]') || document.querySelector('[role="row"]');
+    if (calendarLoaded && !initialized) {
+      console.log("Calendar loaded, starting extension...");
+      initialized = true;
+      
+      // 停止观察
+      obs.disconnect();
+      
+      // 开始执行我们的主要功能
+      startExtension();
+    }
+  });
+
+  // 配置 observer
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
+
+// 主要功能启动函数
+function startExtension() {
+  loadSettings().then(() => {
+    addDatePrefixToEvents();
+    
+    // 设置 MutationObserver 来监视后续的变化
+    const contentObserver = new MutationObserver(debounce(() => {
+      loadSettings().then(() => {
+        addDatePrefixToEvents();
+      });
+    }, DEBOUNCE_DELAY));
+
+    contentObserver.observe(document.body, { childList: true, subtree: true });
+  });
+
+  // 监听来自 popup 的消息
+  chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+      if (request.action === "updateSettings") {
+        loadSettings().then(() => {
+          addDatePrefixToEvents();
+        });
+      }
+    }
+  );
+
+  // 切换标签时运行函数
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      loadSettings().then(() => {
+        addDatePrefixToEvents();
+      });
+    }
+  });
+}
+
+// 当文档加载完成时启动初始化过程
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeExtension);
+} else {
+  initializeExtension();
+}
+
 function formatTimeDifference(dayDifference, hourDifference, isAllDay, isToday, isTomorrow) {
   if (isToday && (isAllDay || hourDifference <= 0)) {
     return ''; // No prefix for today's all-day events or today's past non-all-day events
@@ -135,7 +208,10 @@ function addDatePrefixToEvents() {
   const eventElements = document.querySelectorAll('[data-eventid]');
 
   eventElements.forEach((eventElement) => {
-    let titleElement = eventElement.querySelector('.WBi6vc') || eventElement.querySelector('[role="button"]') || eventElement;
+    let nHqeVdElement = eventElement.querySelector('.nHqeVd') || eventElement.querySelector('.uFexlc');
+    if (!nHqeVdElement) return;
+
+    let titleElement = nHqeVdElement.querySelector('.WBi6vc') || nHqeVdElement.querySelector('[role="button"]') || nHqeVdElement;
     if (!titleElement) return;
 
     let eventDate;
@@ -167,7 +243,7 @@ function addDatePrefixToEvents() {
     const prefix = formatTimeDifference(dayDifference, hourDifference, isAllDay, isToday, isTomorrow);
 
     // Check for existing prefix span
-    let prefixSpan = eventElement.querySelector('.date-prefix-span');
+    let prefixSpan = nHqeVdElement.querySelector('.date-prefix-span');
 
     if (prefix) {
       const newPrefix = `${prefix}`;
@@ -185,39 +261,21 @@ function addDatePrefixToEvents() {
         prefixSpan.className = isAllDay ? 'date-prefix-span date-prefix-all-day' : 'date-prefix-span date-prefix-timed';
         prefixSpan.textContent = newPrefix;
     
-        if (isAllDay) {
-          // For all-day events, add prefix before the title text
-          if (titleElement.childNodes.length > 0) {
-            titleElement.insertBefore(prefixSpan, titleElement.childNodes[0]);
-          } else {
-            titleElement.appendChild(prefixSpan);
-          }
+        // Find the icon element
+        const iconElement = nHqeVdElement.querySelector('i.google-material-icons');
+        
+        if (iconElement) {
+          // If icon exists, insert prefix before the icon
+          nHqeVdElement.insertBefore(prefixSpan, iconElement);
         } else {
-          // For non-all-day events, add prefix before the time span
-          const timeSpan = eventElement.querySelector('.DvyQhe.BdCDHc');
-          if (timeSpan) {
-            timeSpan.parentNode.insertBefore(prefixSpan, timeSpan);
-          } else {
-            // If time span is not found, fall back to inserting before the title
-            if (titleElement.childNodes.length > 0) {
-              titleElement.insertBefore(prefixSpan, titleElement.childNodes[0]);
-            } else {
-              titleElement.appendChild(prefixSpan);
-            }
-          }
+          // If no icon, insert at the beginning of nHqeVdElement
+          nHqeVdElement.insertBefore(prefixSpan, nHqeVdElement.firstChild);
         }
       }
     } else if (prefixSpan) {
       // Remove prefix span if it exists but shouldn't
       prefixSpan.remove();
     }
-
-    // Ensure the title text doesn't contain the prefix
-    titleElement.childNodes.forEach(node => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        node.textContent = node.textContent.replace(/^\([^)]+\)\s*/, '');
-      }
-    });
   });
 }
 
