@@ -208,10 +208,7 @@ function addDatePrefixToEvents() {
   const eventElements = document.querySelectorAll('[data-eventid]');
 
   eventElements.forEach((eventElement) => {
-    let nHqeVdElement = eventElement.querySelector('.nHqeVd') || eventElement.querySelector('.uFexlc');
-    if (!nHqeVdElement) return;
-
-    let titleElement = nHqeVdElement.querySelector('.WBi6vc') || nHqeVdElement.querySelector('[role="button"]') || nHqeVdElement;
+    let titleElement = eventElement.querySelector('.WBi6vc') || eventElement.querySelector('[role="button"]') || eventElement;
     if (!titleElement) return;
 
     let eventDate;
@@ -242,38 +239,36 @@ function addDatePrefixToEvents() {
 
     const prefix = formatTimeDifference(dayDifference, hourDifference, isAllDay, isToday, isTomorrow);
 
-    // Check for existing prefix span
-    let prefixSpan = nHqeVdElement.querySelector('.date-prefix-span');
+    // 檢查現有的前綴 span
+    let prefixSpan = titleElement.querySelector('.date-prefix-span');
+    let titleSpan = titleElement.querySelector('.WBi6vc') || titleElement.querySelector('.I0UMhf');
 
     if (prefix) {
       const newPrefix = `${prefix}`;
       
       if (prefixSpan) {
-        // Update existing prefix span if content has changed
+        // 更新現有前綴 span 的內容（如果已更改）
         if (prefixSpan.textContent !== newPrefix) {
           prefixSpan.textContent = newPrefix;
         }
-        // Update class based on event type
-        prefixSpan.className = isAllDay ? 'date-prefix-span date-prefix-all-day' : 'date-prefix-span date-prefix-timed';
       } else {
-        // Create new prefix span if it doesn't exist
+        // 創建新的前綴 span（如果不存在）
         prefixSpan = document.createElement('span');
-        prefixSpan.className = isAllDay ? 'date-prefix-span date-prefix-all-day' : 'date-prefix-span date-prefix-timed';
         prefixSpan.textContent = newPrefix;
-    
-        // Find the icon element
-        const iconElement = nHqeVdElement.querySelector('i.google-material-icons');
         
-        if (iconElement) {
-          // If icon exists, insert prefix before the icon
-          nHqeVdElement.insertBefore(prefixSpan, iconElement);
+        // 將前綴插入到標題之前
+        if (titleSpan) {
+          titleSpan.parentNode.insertBefore(prefixSpan, titleSpan);
         } else {
-          // If no icon, insert at the beginning of nHqeVdElement
-          nHqeVdElement.insertBefore(prefixSpan, nHqeVdElement.firstChild);
+          titleElement.insertBefore(prefixSpan, titleElement.firstChild);
         }
       }
+      
+      // 更新類別基於事件類型
+      prefixSpan.className = isAllDay ? 'date-prefix-span date-prefix-all-day' : 'date-prefix-span date-prefix-timed';
+      
     } else if (prefixSpan) {
-      // Remove prefix span if it exists but shouldn't
+      // 如果前綴不應存在但存在，則移除它
       prefixSpan.remove();
     }
   });

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Google Calendar Date Prefixer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Adds customizable date/time difference prefix to Google Calendar event titles",
   "permissions": [
     "storage"
