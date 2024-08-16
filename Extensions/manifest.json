@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Google Calendar Date Prefixer",
-  "version": "1.0.4",
-  "description": "Adds customizable date/time difference prefix to Google Calendar event titles",
+  "version": "1.0.5",
+  "description": "Display the number of days or hours remaining until the event in front of the Google Calendar event title",
   "permissions": [
     "storage"
   ],
