@@ -1,10 +1,10 @@
-# Google Calendar Date Prefixer
+# Event Days to Now for Google Calendar
 
 Enhance your Google Calendar experience with Date Prefixer! This extension adds intuitive time indicators to your events, making it easier than ever to gauge the proximity of your appointments at a glance.
 
 ## Install
 Chrome Web Store: 
-https://chromewebstore.google.com/detail/google-calendar-date-pref/hceoajkodhbjkoiopgehogkfplgpmpdj
+https://chromewebstore.google.com/detail/hceoajkodhbjkoiopgehogkfplgpmpdj
 
 ## Key Features:
 

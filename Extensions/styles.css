@@ -9,6 +9,8 @@
     animation: appear 0.5s ease-in-out forwards;
     align-items: center;
     white-space: nowrap;
+    line-height: 155%;
+    vertical-align: baseline;
 }
 
 .date-prefix-all-day {
@@ -19,6 +21,10 @@
 .date-prefix-timed {
     background-color: #fff;
     color: #3c4043;
+}
+
+.KcY3wb .date-prefix-timed {
+    line-height: 120%;
 }
 
 .nHqeVd, .uFexlc {
