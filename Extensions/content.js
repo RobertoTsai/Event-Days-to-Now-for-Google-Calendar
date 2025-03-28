@@ -191,6 +191,35 @@ function parseDateFromString(dateString) {
   return null;
 }
 
+// 从生日事件的 eventId 中提取日期
+function parseDateFromBirthdayEventId(eventId) {
+  if (!eventId || !eventId.startsWith('bday_')) {
+    return null;
+  }
+  
+  try {
+    // 去掉 'bday_' 前缀
+    const base64Part = eventId.substring(5);
+    // Base64 解码
+    const decodedString = atob(base64Part);
+    // 查找格式为 _YYYYMMDD 的日期
+    const dateMatch = decodedString.match(/_(\d{8})/);
+    
+    if (dateMatch && dateMatch[1]) {
+      const dateStr = dateMatch[1];
+      const year = parseInt(dateStr.substring(0, 4));
+      const month = parseInt(dateStr.substring(4, 6)) - 1; // 月份从0开始
+      const day = parseInt(dateStr.substring(6, 8));
+      
+      return new Date(year, month, day);
+    }
+  } catch (error) {
+    console.error('Error parsing birthday date from eventId:', error);
+  }
+  
+  return null;
+}
+
 function addDatePrefixToEvents() {
   if (!settings.enableExtension) {
     removeDatePrefixes();
@@ -214,16 +243,28 @@ function addDatePrefixToEvents() {
     let eventDate;
     let isAllDay = false;
     
-    const ariaLabel = eventElement.getAttribute('aria-label') || titleElement.getAttribute('aria-label') || eventElement.querySelector('.XuJrye')?.textContent;
-    if (ariaLabel) {
-      const dateString = ariaLabel;
-      eventDate = parseDateFromString(dateString);
-      isAllDay = !ariaLabel.match(/\d{1,2}:\d{2}/);
+    // 获取 data-eventid 属性值
+    const eventId = eventElement.getAttribute('data-eventid');
+    
+    // 检查是否为生日事件
+    if (eventId && eventId.startsWith('bday_')) {
+      // 从生日事件ID中提取日期
+      eventDate = parseDateFromBirthdayEventId(eventId);
+      // 生日事件通常是全天事件
+      isAllDay = true;
+    } else {
+      // 使用原来的方式解析日期
+      const ariaLabel = eventElement.getAttribute('aria-label') || titleElement.getAttribute('aria-label') || eventElement.querySelector('.XuJrye')?.textContent;
+      if (ariaLabel) {
+        const dateString = ariaLabel;
+        eventDate = parseDateFromString(dateString);
+        isAllDay = !ariaLabel.match(/\d{1,2}:\d{2}/);
 
-      if (!isAllDay && eventDate) {
-        const timeMatch = ariaLabel.match(/(\d{1,2}):(\d{2})/);
-        if (timeMatch) {
-          eventDate.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]));
+        if (!isAllDay && eventDate) {
+          const timeMatch = ariaLabel.match(/(\d{1,2}):(\d{2})/);
+          if (timeMatch) {
+            eventDate.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]));
+          }
         }
       }
     }
