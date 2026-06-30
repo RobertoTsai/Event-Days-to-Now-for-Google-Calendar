@@ -63,6 +63,13 @@ assert.strictEqual(englishDate.getDate(), 30);
 const englishTime = en.parseTimeFromString('May 5 report, Tuesday, June 30, 2026 ⋅ 3:30 PM');
 assert.strictEqual(englishTime.hours, 15);
 assert.strictEqual(englishTime.minutes, 30);
+assert.strictEqual(en.formatTimeDifference(370, 0, true, false, false), '1y5d');
+assert.strictEqual(en.formatTimeDifference(0, 5, false, true, false), '5h');
+vm.runInContext("settings.yearUnitLabel = '年'; settings.dayUnitLabel = '天'; settings.hourUnitLabel = '小時';", en);
+assert.strictEqual(en.formatTimeDifference(370, 0, true, false, false), '1年5天');
+assert.strictEqual(en.formatTimeDifference(0, 5, false, true, false), '5小時');
+vm.runInContext('settings.showYearsForLongPeriods = false;', en);
+assert.strictEqual(en.formatTimeDifference(370, 0, true, false, false), '370天');
 
 const sinhalaDate = en.parseDateFromString('ගිණුම ගෙවීම, බදාදා, ජූලි 1, 2026');
 assert.strictEqual(sinhalaDate.getFullYear(), 2026);

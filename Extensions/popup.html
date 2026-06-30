@@ -81,8 +81,13 @@
       background-color: #f9fafb;
     }
 
-    .setting-item.disabled .switch {
+    .setting-item.disabled .switch,
+    .setting-item.disabled input[type="text"] {
       pointer-events: none;
+    }
+
+    .setting-item.stacked {
+      grid-template-columns: 1fr;
     }
 
     .switch {
@@ -148,6 +153,42 @@
       color: #64748b;
       font-size: 12px;
       line-height: 1.45;
+    }
+
+    .unit-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .unit-field {
+      display: grid;
+      gap: 5px;
+    }
+
+    .unit-field label {
+      color: #475569;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .unit-input {
+      width: 100%;
+      min-height: 34px;
+      padding: 7px 9px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      color: #111827;
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .unit-input:focus {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.14);
     }
 
     .years-examples {
@@ -248,13 +289,33 @@
         <div class="years-examples" aria-label="Show years examples">
           <div class="example-card" id="yearsExampleOn">
             <span class="example-title">On</span>
-            <span class="example-prefix">1y5d</span>
+            <span class="example-prefix" id="yearsExampleOnPrefix">1y5d</span>
             <span class="example-note">370 days away</span>
           </div>
           <div class="example-card" id="yearsExampleOff">
             <span class="example-title">Off</span>
-            <span class="example-prefix">370d</span>
+            <span class="example-prefix" id="yearsExampleOffPrefix">370d</span>
             <span class="example-note">Same event</span>
+          </div>
+        </div>
+      </div>
+      <div class="setting-item stacked" id="unitLabelsSettingItem">
+        <div>
+          <span class="setting-label">Prefix text</span>
+          <p class="setting-description">Customize the labels used after year, day, and hour numbers.</p>
+        </div>
+        <div class="unit-grid">
+          <div class="unit-field">
+            <label for="yearUnitLabel">Year</label>
+            <input class="unit-input" type="text" id="yearUnitLabel" maxlength="6" value="y">
+          </div>
+          <div class="unit-field">
+            <label for="dayUnitLabel">Day</label>
+            <input class="unit-input" type="text" id="dayUnitLabel" maxlength="6" value="d">
+          </div>
+          <div class="unit-field">
+            <label for="hourUnitLabel">Hour</label>
+            <input class="unit-input" type="text" id="hourUnitLabel" maxlength="6" value="h">
           </div>
         </div>
       </div>

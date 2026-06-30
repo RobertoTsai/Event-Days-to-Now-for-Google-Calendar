@@ -1,7 +1,10 @@
 // content.js
 let settings = {
   enableExtension: true,
-  showYearsForLongPeriods: true
+  showYearsForLongPeriods: true,
+  yearUnitLabel: 'y',
+  dayUnitLabel: 'd',
+  hourUnitLabel: 'h'
 };
 let extensionStarted = false;
 let datePrefixUpdateQueued = false;
@@ -15,7 +18,7 @@ function loadSettings(done = () => {}) {
   }
 
   try {
-    chrome.storage.sync.get(['enableExtension', 'showYearsForLongPeriods'], (result) => {
+    chrome.storage.sync.get(['enableExtension', 'showYearsForLongPeriods', 'yearUnitLabel', 'dayUnitLabel', 'hourUnitLabel'], (result) => {
       try {
         const error = getRuntimeLastError();
         if (error) {
@@ -27,7 +30,10 @@ function loadSettings(done = () => {}) {
         result = result || {};
         settings = {
           enableExtension: result.enableExtension !== false,
-          showYearsForLongPeriods: result.showYearsForLongPeriods !== false
+          showYearsForLongPeriods: result.showYearsForLongPeriods !== false,
+          yearUnitLabel: getUnitLabel(result.yearUnitLabel, 'y'),
+          dayUnitLabel: getUnitLabel(result.dayUnitLabel, 'd'),
+          hourUnitLabel: getUnitLabel(result.hourUnitLabel, 'h')
         };
         setPrefixPending(settings.enableExtension);
         done(true);
@@ -40,6 +46,10 @@ function loadSettings(done = () => {}) {
     handleExtensionApiError(error);
     done(false);
   }
+}
+
+function getUnitLabel(value, fallback) {
+  return String(value ?? '').trim() || fallback;
 }
 
 function canUseExtensionApi() {
@@ -174,32 +184,35 @@ function formatTimeDifference(dayDifference, hourDifference, isAllDay, isToday, 
   }
 
   const absDayDifference = Math.abs(dayDifference);
+  const yearUnitLabel = getUnitLabel(settings.yearUnitLabel, 'y');
+  const dayUnitLabel = getUnitLabel(settings.dayUnitLabel, 'd');
+  const hourUnitLabel = getUnitLabel(settings.hourUnitLabel, 'h');
 
   if (settings.showYearsForLongPeriods && absDayDifference >= 365) {
     const years = Math.floor(absDayDifference / 365);
     const remainingDays = absDayDifference % 365;
-    return dayDifference < 0 ? 
-      `-${years}y${remainingDays}d` : 
-      `${years}y${remainingDays}d`;
+    return dayDifference < 0
+      ? `-${years}${yearUnitLabel}${remainingDays}${dayUnitLabel}`
+      : `${years}${yearUnitLabel}${remainingDays}${dayUnitLabel}`;
   }
 
   if (dayDifference < 0) {
-    return `${dayDifference}d`;
+    return `${dayDifference}${dayUnitLabel}`;
   }
 
   if (!isAllDay && isToday) {
-    return `${Math.round(hourDifference)}h`;
+    return `${Math.round(hourDifference)}${hourUnitLabel}`;
   }
 
   if (isTomorrow) {
     if (isAllDay || hourDifference > 24) {
-      return '1d';
+      return `1${dayUnitLabel}`;
     } else {
-      return `${Math.round(hourDifference)}h`;
+      return `${Math.round(hourDifference)}${hourUnitLabel}`;
     }
   }
   
-  return `${dayDifference}d`;
+  return `${dayDifference}${dayUnitLabel}`;
 }
 
 let localizedMonthCacheKey = '';
