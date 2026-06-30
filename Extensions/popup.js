@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var yearsExampleOffPrefix = document.getElementById('yearsExampleOffPrefix');
   var status = document.getElementById('status');
   var currentLanguage = 'en';
+  var popupTitle = 'Event Days to Now';
 
   var supportedLanguages = ['en', 'zh-TW', 'zh-CN', 'es', 'ar', 'hi', 'pt', 'bn', 'ru', 'ja', 'de', 'fr', 'ko'];
   var languageNames = {
@@ -441,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var text = messages[currentLanguage] || messages.en;
     document.documentElement.lang = currentLanguage;
     document.documentElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
-    document.title = text.documentTitle;
+    document.title = popupTitle;
     document.querySelectorAll('[data-i18n]').forEach(function(element) {
       element.textContent = getTranslatedText(text, element.dataset.i18n);
     });
