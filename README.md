@@ -2,7 +2,7 @@
 
 Enhance your Google Calendar experience with Date Prefixer! This extension adds compact time indicators to your events, making it easier to see how close each appointment is at a glance.
 
-Current version: **1.0.14**
+Current version: **1.2**
 
 ## Install
 Chrome Web Store: 
@@ -17,8 +17,12 @@ https://chromewebstore.google.com/detail/hceoajkodhbjkoiopgehogkfplgpmpdj
     - Events within 24 hours: Shown in hours (e.g., 5h)
     - Events beyond 24 hours: Displayed in days (e.g., 3d)
     - Long-term events: Option to display in years and days (e.g., 1y5d)
+    - Unit labels can be customized, such as 1y5d -> 1年5天
 3. **Customizable Settings**:
     - Toggle the display of years for long-term events
+    - Customize year, day, and hour labels while keeping y/d/h as defaults
+    - Preview the display result for long-term events directly in the popup
+    - Choose the popup display language manually or follow the browser language automatically
     - Easily accessible settings through the extension icon
 4. **Seamless Integration**:
     - Works directly within your Google Calendar interface
@@ -28,9 +32,12 @@ https://chromewebstore.google.com/detail/hceoajkodhbjkoiopgehogkfplgpmpdj
     - Prefixes update automatically as time passes
     - Always shows the most current time difference
 6. **User-Friendly Design**:
+    - Modernized popup settings layout with clearer descriptions and examples
     - Clean and unobtrusive visual style
     - Doesn't interfere with Google Calendar's existing functionality
 7. **Multi-Language Support**:
+    - Popup settings support English, Traditional Chinese, Simplified Chinese, Spanish, Arabic, Hindi, Portuguese, Bengali, Russian, Japanese, German, French, and Korean
+    - Automatically selects the popup language from the user's browser language
     - Reads Google Calendar event labels across localized calendar UIs
     - Uses browser locale data for month names instead of hard-coded English-only parsing
     - Includes support for contact birthday events and localized month labels such as Sinhala Gregorian month names
@@ -42,6 +49,7 @@ https://chromewebstore.google.com/detail/hceoajkodhbjkoiopgehogkfplgpmpdj
 
 ## Release Notes
 
+- **1.2**: Redesigned the popup settings UI, added examples for long-term year display, added customizable year/day/hour unit labels with y/d/h defaults and automatic fallback for empty inputs, localized the popup settings UI in 13 languages, added browser-language auto selection plus a manual language selector, and added popup i18n checks.
 - **1.0.14**: Integrated update after 1.0.7. Improved localized date parsing beyond the original supported languages, fixed incorrect date detection from nearby calendar DOM metadata, added Sinhala Gregorian month-name handling, changed prefix rendering from inserted spans to CSS-based labels, reduced first-render layout movement, sped up event refresh handling, guarded Chrome API calls to avoid extension context invalidated errors, and kept test files outside the Chrome Web Store upload folder.
 - **1.0.7**: Fix contact birthday problems.
 - **1.0.6**: Change extension name & modify date tag style.
