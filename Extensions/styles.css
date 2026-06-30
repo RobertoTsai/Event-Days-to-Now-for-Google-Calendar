@@ -1,4 +1,5 @@
-.date-prefix-span {
+.date-prefix-host::before {
+    content: attr(data-date-prefix);
     border-radius: 4px;
     padding: 0px 3px;
     margin-right: 4px;
@@ -6,24 +7,23 @@
     box-shadow: inset 0 0 2px 1px #80808070;
     font-size: 95%;
     display: inline-flex;
-    animation: appear 0.5s ease-in-out forwards;
     align-items: center;
     white-space: nowrap;
     line-height: 155%;
     vertical-align: baseline;
 }
 
-.date-prefix-all-day {
+.date-prefix-all-day::before {
     background-color: #fff;
     color: #3c4043;
 }
 
-.date-prefix-timed {
+.date-prefix-timed::before {
     background-color: #fff;
     color: #3c4043;
 }
 
-.KcY3wb .date-prefix-timed {
+.KcY3wb .date-prefix-timed::before {
     line-height: 120%;
 }
 
@@ -32,17 +32,6 @@
     align-items: center;
 }
 
-.nHqeVd .date-prefix-span, .uFexlc .date-prefix-span {
+.nHqeVd .date-prefix-host::before, .uFexlc .date-prefix-host::before {
     order: -1; /* 确保前缀总是在最前面 */
-}
-
-@keyframes appear {
-  from {
-    opacity: 0;
-    max-width: 0;
-  }
-  to {
-    opacity: 1;
-    max-width: 100%;
-  }
 }

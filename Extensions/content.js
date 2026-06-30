@@ -5,6 +5,7 @@ let settings = {
   enableExtension: true,
   showYearsForLongPeriods: true
 };
+let extensionStarted = false;
 
 function loadSettings() {
   return new Promise((resolve) => {
@@ -62,14 +63,15 @@ function initializeExtension() {
 
 // 主要功能启动函数
 function startExtension() {
+  if (extensionStarted) return;
+  extensionStarted = true;
+
   loadSettings().then(() => {
     addDatePrefixToEvents();
     
     // 设置 MutationObserver 来监视后续的变化
     const contentObserver = new MutationObserver(debounce(() => {
-      loadSettings().then(() => {
-        addDatePrefixToEvents();
-      });
+      addDatePrefixToEvents();
     }, DEBOUNCE_DELAY));
 
     contentObserver.observe(document.body, { childList: true, subtree: true });
@@ -330,6 +332,28 @@ function parseTimeFromString(dateString) {
   return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 ? { hours, minutes } : null;
 }
 
+function getPrefixHost(titleElement) {
+  const titleSpan = titleElement.querySelector('.WBi6vc') || titleElement.querySelector('.I0UMhf');
+  return titleSpan?.parentNode || titleElement;
+}
+
+function setDatePrefix(prefixHost, prefix, isAllDay) {
+  prefixHost.querySelector('.date-prefix-span')?.remove();
+
+  if (!prefix) {
+    delete prefixHost.dataset.datePrefix;
+    prefixHost.classList.remove('date-prefix-host', 'date-prefix-all-day', 'date-prefix-timed');
+    return;
+  }
+
+  if (prefixHost.dataset.datePrefix !== prefix) {
+    prefixHost.dataset.datePrefix = prefix;
+  }
+
+  prefixHost.classList.add('date-prefix-host', isAllDay ? 'date-prefix-all-day' : 'date-prefix-timed');
+  prefixHost.classList.remove(isAllDay ? 'date-prefix-timed' : 'date-prefix-all-day');
+}
+
 // 从生日事件的 eventId 中提取日期
 function parseDateFromBirthdayEventId(eventId) {
   if (!eventId || !eventId.startsWith('bday_')) {
@@ -414,76 +438,14 @@ function addDatePrefixToEvents() {
 
     const prefix = formatTimeDifference(dayDifference, hourDifference, isAllDay, isToday, isTomorrow);
 
-    // 檢查現有的前綴 span
-    let prefixSpan = titleElement.querySelector('.date-prefix-span');
-    let titleSpan = titleElement.querySelector('.WBi6vc') || titleElement.querySelector('.I0UMhf');
-
-    if (prefix) {
-      const newPrefix = `${prefix}`;
-      
-      if (prefixSpan) {
-        // 更新現有前綴 span 的內容（如果已更改）
-        if (prefixSpan.textContent !== newPrefix) {
-          prefixSpan.textContent = newPrefix;
-        }
-      } else {
-        // 創建新的前綴 span（如果不存在）
-        prefixSpan = document.createElement('span');
-        prefixSpan.textContent = newPrefix;
-        
-        // 將前綴插入到標題之前
-        if (titleSpan) {
-          titleSpan.parentNode.insertBefore(prefixSpan, titleSpan);
-        } else {
-          titleElement.insertBefore(prefixSpan, titleElement.firstChild);
-        }
-      }
-      
-      // 更新類別基於事件類型
-      prefixSpan.className = isAllDay ? 'date-prefix-span date-prefix-all-day' : 'date-prefix-span date-prefix-timed';
-      
-    } else if (prefixSpan) {
-      // 如果前綴不應存在但存在，則移除它
-      prefixSpan.remove();
-    }
+    setDatePrefix(getPrefixHost(titleElement), prefix, isAllDay);
   });
 }
 
 function removeDatePrefixes() {
-  const prefixSpans = document.querySelectorAll('.date-prefix-span');
-  prefixSpans.forEach(span => span.remove());
-}
-
-// Initial load of settings and application of prefixes
-loadSettings().then(() => {
-  addDatePrefixToEvents();
-});
-
-// Set up MutationObserver to watch for changes
-const observer = new MutationObserver(debounce(() => {
-  loadSettings().then(() => {
-    addDatePrefixToEvents();
+  document.querySelectorAll('.date-prefix-span').forEach(span => span.remove());
+  document.querySelectorAll('.date-prefix-host').forEach((prefixHost) => {
+    delete prefixHost.dataset.datePrefix;
+    prefixHost.classList.remove('date-prefix-host', 'date-prefix-all-day', 'date-prefix-timed');
   });
-}, DEBOUNCE_DELAY));
-
-observer.observe(document.body, { childList: true, subtree: true });
-
-// Listen for messages from popup
-chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    if (request.action === "updateSettings") {
-      loadSettings().then(() => {
-        addDatePrefixToEvents();
-      });
-    }
-  }
-);
-
-// Run the function when switching tabs
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    loadSettings().then(() => {
-      addDatePrefixToEvents();
-    });
-  }
-});
+}
