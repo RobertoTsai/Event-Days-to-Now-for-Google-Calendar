@@ -83,6 +83,17 @@ const badAncestorEvent = {
 assert.strictEqual(en.parseDateFromElementMetadata(badAncestorEvent), null);
 
 const classes = new Set();
+const outerHost = { id: 'outer' };
+const innerTitle = {
+  querySelector: () => null,
+  closest: selector => selector === '.nHqeVd, .uFexlc' ? outerHost : null
+};
+assert.strictEqual(en.getPrefixHost(innerTitle), outerHost);
+assert.strictEqual(en.getPrefixHost({
+  querySelector: selector => selector === '.nHqeVd, .uFexlc' ? outerHost : null,
+  closest: () => null
+}), outerHost);
+
 const prefixHost = {
   dataset: {},
   querySelector: () => null,
@@ -93,10 +104,12 @@ const prefixHost = {
 };
 en.setDatePrefix(prefixHost, '1d', true);
 assert.strictEqual(prefixHost.dataset.datePrefix, '1d');
+assert.strictEqual(classes.has('date-prefix-ready'), true);
 assert.strictEqual(classes.has('date-prefix-host'), true);
 assert.strictEqual(classes.has('date-prefix-all-day'), true);
 en.setDatePrefix(prefixHost, '', false);
 assert.strictEqual(prefixHost.dataset.datePrefix, undefined);
+assert.strictEqual(classes.has('date-prefix-ready'), true);
 assert.strictEqual(classes.has('date-prefix-host'), false);
 
 console.log('content parser checks passed');

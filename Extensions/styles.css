@@ -13,6 +13,11 @@
     vertical-align: baseline;
 }
 
+:root.date-prefix-pending [data-eventid] .nHqeVd:not(.date-prefix-ready),
+:root.date-prefix-pending [data-eventid] .uFexlc:not(.date-prefix-ready) {
+    opacity: 0;
+}
+
 .date-prefix-all-day::before {
     background-color: #fff;
     color: #3c4043;

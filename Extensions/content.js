@@ -1,11 +1,11 @@
 // content.js
-const DEBOUNCE_DELAY = 600; // milliseconds
-
 let settings = {
   enableExtension: true,
   showYearsForLongPeriods: true
 };
 let extensionStarted = false;
+let datePrefixUpdateQueued = false;
+setPrefixPending(true);
 
 function loadSettings() {
   return new Promise((resolve) => {
@@ -14,21 +14,25 @@ function loadSettings() {
         enableExtension: result.enableExtension !== false,
         showYearsForLongPeriods: result.showYearsForLongPeriods !== false
       };
+      setPrefixPending(settings.enableExtension);
       resolve();
     });
   });
 }
 
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
+function setPrefixPending(enabled) {
+  document.documentElement?.classList?.toggle('date-prefix-pending', enabled);
+}
+
+function scheduleDatePrefixUpdate() {
+  if (datePrefixUpdateQueued) return;
+  datePrefixUpdateQueued = true;
+
+  const schedule = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : setTimeout;
+  schedule(() => {
+    datePrefixUpdateQueued = false;
+    addDatePrefixToEvents();
+  });
 }
 
 // 新增的初始化函数
@@ -37,22 +41,21 @@ function initializeExtension() {
   
   // 设置一个标志来跟踪是否已经初始化
   let initialized = false;
-
-  // 创建一个 MutationObserver 来监视 DOM 变化
-  const observer = new MutationObserver((mutations, obs) => {
-    // 检查页面是否已经加载完毕
+  const startIfCalendarLoaded = (obs) => {
     const calendarLoaded = document.querySelector('[role="grid"]') || document.querySelector('[role="row"]');
     if (calendarLoaded && !initialized) {
       console.log("Calendar loaded, starting extension...");
       initialized = true;
-      
-      // 停止观察
-      obs.disconnect();
-      
-      // 开始执行我们的主要功能
+      obs?.disconnect();
       startExtension();
     }
-  });
+  };
+
+  // 创建一个 MutationObserver 来监视 DOM 变化
+  const observer = new MutationObserver((mutations, obs) => startIfCalendarLoaded(obs));
+
+  startIfCalendarLoaded(observer);
+  if (initialized) return;
 
   // 配置 observer
   observer.observe(document.body, {
@@ -70,9 +73,7 @@ function startExtension() {
     addDatePrefixToEvents();
     
     // 设置 MutationObserver 来监视后续的变化
-    const contentObserver = new MutationObserver(debounce(() => {
-      addDatePrefixToEvents();
-    }, DEBOUNCE_DELAY));
+    const contentObserver = new MutationObserver(scheduleDatePrefixUpdate);
 
     contentObserver.observe(document.body, { childList: true, subtree: true });
   });
@@ -334,11 +335,12 @@ function parseTimeFromString(dateString) {
 
 function getPrefixHost(titleElement) {
   const titleSpan = titleElement.querySelector('.WBi6vc') || titleElement.querySelector('.I0UMhf');
-  return titleSpan?.parentNode || titleElement;
+  return titleElement.closest?.('.nHqeVd, .uFexlc') || titleElement.querySelector?.('.nHqeVd, .uFexlc') || titleSpan?.closest?.('.nHqeVd, .uFexlc') || titleSpan?.parentNode || titleElement;
 }
 
 function setDatePrefix(prefixHost, prefix, isAllDay) {
   prefixHost.querySelector('.date-prefix-span')?.remove();
+  prefixHost.classList.add('date-prefix-ready');
 
   if (!prefix) {
     delete prefixHost.dataset.datePrefix;
@@ -384,6 +386,8 @@ function parseDateFromBirthdayEventId(eventId) {
 }
 
 function addDatePrefixToEvents() {
+  setPrefixPending(settings.enableExtension);
+
   if (!settings.enableExtension) {
     removeDatePrefixes();
     return;
@@ -427,7 +431,10 @@ function addDatePrefixToEvents() {
       }
     }
 
-    if (!eventDate || isNaN(eventDate.getTime())) return;
+    if (!eventDate || isNaN(eventDate.getTime())) {
+      setDatePrefix(getPrefixHost(titleElement), '', false);
+      return;
+    }
 
     const isToday = eventDate >= todayStart && eventDate < tomorrowStart;
     const isTomorrow = eventDate >= tomorrowStart && eventDate < dayAfterTomorrowStart;
@@ -446,6 +453,6 @@ function removeDatePrefixes() {
   document.querySelectorAll('.date-prefix-span').forEach(span => span.remove());
   document.querySelectorAll('.date-prefix-host').forEach((prefixHost) => {
     delete prefixHost.dataset.datePrefix;
-    prefixHost.classList.remove('date-prefix-host', 'date-prefix-all-day', 'date-prefix-timed');
+    prefixHost.classList.remove('date-prefix-ready', 'date-prefix-host', 'date-prefix-all-day', 'date-prefix-timed');
   });
 }
