@@ -191,6 +191,24 @@
       box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.14);
     }
 
+    .language-select {
+      width: 100%;
+      min-height: 36px;
+      padding: 7px 9px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      color: #111827;
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .language-select:focus {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.14);
+    }
+
     .years-examples {
       grid-column: 1 / -1;
       display: grid;
@@ -263,61 +281,68 @@
       <img src="icon128.png" alt="Date Prefixer Icon" class="icon">
       <div>
         <h2>Date Prefixer</h2>
-        <p class="subtitle">Google Calendar event countdown settings</p>
+        <p class="subtitle" data-i18n="subtitle">Google Calendar event countdown settings</p>
       </div>
     </div>
     <div class="settings">
       <div class="setting-item">
         <div>
-          <span class="setting-label">Enable Date Prefixer</span>
-          <p class="setting-description">Add day or hour prefixes before event titles.</p>
+          <span class="setting-label" data-i18n="enableLabel">Enable Date Prefixer</span>
+          <p class="setting-description" data-i18n="enableDescription">Add day or hour prefixes before event titles.</p>
         </div>
-        <label class="switch" title="Enable Date Prefixer">
-          <input type="checkbox" id="enableExtension" aria-label="Enable Date Prefixer">
+        <label class="switch" title="Enable Date Prefixer" data-i18n-title="enableLabel">
+          <input type="checkbox" id="enableExtension" aria-label="Enable Date Prefixer" data-i18n-aria-label="enableLabel">
           <span class="slider"></span>
         </label>
       </div>
       <div class="setting-item" id="yearsSettingItem">
         <div>
-          <span class="setting-label">Show years for long periods</span>
-          <p class="setting-description">For events 365+ days away, shorten long day counts.</p>
+          <span class="setting-label" data-i18n="showYearsLabel">Show years for long periods</span>
+          <p class="setting-description" data-i18n="showYearsDescription">For events 365+ days away, shorten long day counts.</p>
         </div>
-        <label class="switch" title="Show years for long periods">
-          <input type="checkbox" id="showYearsForLongPeriods" aria-label="Show years for long periods">
+        <label class="switch" title="Show years for long periods" data-i18n-title="showYearsLabel">
+          <input type="checkbox" id="showYearsForLongPeriods" aria-label="Show years for long periods" data-i18n-aria-label="showYearsLabel">
           <span class="slider"></span>
         </label>
-        <div class="years-examples" aria-label="Show years examples">
+        <div class="years-examples" aria-label="Show years examples" data-i18n-aria-label="showYearsExamples">
           <div class="example-card" id="yearsExampleOn">
-            <span class="example-title">On</span>
+            <span class="example-title" data-i18n="onLabel">On</span>
             <span class="example-prefix" id="yearsExampleOnPrefix">1y5d</span>
-            <span class="example-note">370 days away</span>
+            <span class="example-note" data-i18n="daysAwayNote">370 days away</span>
           </div>
           <div class="example-card" id="yearsExampleOff">
-            <span class="example-title">Off</span>
+            <span class="example-title" data-i18n="offLabel">Off</span>
             <span class="example-prefix" id="yearsExampleOffPrefix">370d</span>
-            <span class="example-note">Same event</span>
+            <span class="example-note" data-i18n="sameEventNote">Same event</span>
           </div>
         </div>
       </div>
       <div class="setting-item stacked" id="unitLabelsSettingItem">
         <div>
-          <span class="setting-label">Prefix text</span>
-          <p class="setting-description">Customize the labels used after year, day, and hour numbers.</p>
+          <span class="setting-label" data-i18n="prefixTextLabel">Prefix text</span>
+          <p class="setting-description" data-i18n="prefixTextDescription">Customize the labels used after year, day, and hour numbers.</p>
         </div>
         <div class="unit-grid">
           <div class="unit-field">
-            <label for="yearUnitLabel">Year</label>
+            <label for="yearUnitLabel" data-i18n="yearLabel">Year</label>
             <input class="unit-input" type="text" id="yearUnitLabel" maxlength="6" value="y">
           </div>
           <div class="unit-field">
-            <label for="dayUnitLabel">Day</label>
+            <label for="dayUnitLabel" data-i18n="dayLabel">Day</label>
             <input class="unit-input" type="text" id="dayUnitLabel" maxlength="6" value="d">
           </div>
           <div class="unit-field">
-            <label for="hourUnitLabel">Hour</label>
+            <label for="hourUnitLabel" data-i18n="hourLabel">Hour</label>
             <input class="unit-input" type="text" id="hourUnitLabel" maxlength="6" value="h">
           </div>
         </div>
+      </div>
+      <div class="setting-item stacked">
+        <div>
+          <span class="setting-label" data-i18n="languageLabel">Language</span>
+          <p class="setting-description" data-i18n="languageDescription">Choose the popup display language.</p>
+        </div>
+        <select class="language-select" id="displayLanguage" aria-label="Language" data-i18n-aria-label="languageLabel"></select>
       </div>
     </div>
     <div id="status" role="status" aria-live="polite"></div>
