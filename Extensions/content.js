@@ -5,18 +5,92 @@ let settings = {
 };
 let extensionStarted = false;
 let datePrefixUpdateQueued = false;
+let extensionContextValid = true;
 setPrefixPending(true);
 
-function loadSettings() {
-  return new Promise((resolve) => {
+function loadSettings(done = () => {}) {
+  if (!canUseExtensionApi()) {
+    done(false);
+    return;
+  }
+
+  try {
     chrome.storage.sync.get(['enableExtension', 'showYearsForLongPeriods'], (result) => {
-      settings = {
-        enableExtension: result.enableExtension !== false,
-        showYearsForLongPeriods: result.showYearsForLongPeriods !== false
-      };
-      setPrefixPending(settings.enableExtension);
-      resolve();
+      try {
+        const error = getRuntimeLastError();
+        if (error) {
+          handleExtensionApiError(error);
+          done(false);
+          return;
+        }
+
+        result = result || {};
+        settings = {
+          enableExtension: result.enableExtension !== false,
+          showYearsForLongPeriods: result.showYearsForLongPeriods !== false
+        };
+        setPrefixPending(settings.enableExtension);
+        done(true);
+      } catch (error) {
+        handleExtensionApiError(error);
+        done(false);
+      }
     });
+  } catch (error) {
+    handleExtensionApiError(error);
+    done(false);
+  }
+}
+
+function canUseExtensionApi() {
+  try {
+    const available = typeof chrome !== 'undefined' && !!chrome.runtime?.id && !!chrome.storage?.sync;
+    if (!available) {
+      extensionContextValid = false;
+      setPrefixPending(false);
+    }
+    return extensionContextValid && available;
+  } catch (error) {
+    handleExtensionApiError(error);
+    return false;
+  }
+}
+
+function handleExtensionApiError(error) {
+  if (/Extension context invalidated/i.test(error?.message || '')) {
+    extensionContextValid = false;
+    setPrefixPending(false);
+  }
+}
+
+function getRuntimeLastError() {
+  try {
+    return chrome.runtime.lastError;
+  } catch (error) {
+    handleExtensionApiError(error);
+    return error;
+  }
+}
+
+function addMessageListener() {
+  if (!canUseExtensionApi()) return;
+
+  try {
+    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+      if (request.action === "updateSettings") {
+        loadSettings((loaded) => {
+          if (loaded) addDatePrefixToEvents();
+        });
+      }
+    });
+  } catch (error) {
+    handleExtensionApiError(error);
+  }
+}
+
+function applyLoadedSettings() {
+  loadSettings((loaded) => {
+    if (loaded) addDatePrefixToEvents();
   });
 }
 
@@ -69,32 +143,20 @@ function startExtension() {
   if (extensionStarted) return;
   extensionStarted = true;
 
-  loadSettings().then(() => {
-    addDatePrefixToEvents();
-    
-    // 设置 MutationObserver 来监视后续的变化
-    const contentObserver = new MutationObserver(scheduleDatePrefixUpdate);
+  applyLoadedSettings();
 
-    contentObserver.observe(document.body, { childList: true, subtree: true });
-  });
+  // 设置 MutationObserver 来监视后续的变化
+  const contentObserver = new MutationObserver(scheduleDatePrefixUpdate);
+
+  contentObserver.observe(document.body, { childList: true, subtree: true });
 
   // 监听来自 popup 的消息
-  chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
-      if (request.action === "updateSettings") {
-        loadSettings().then(() => {
-          addDatePrefixToEvents();
-        });
-      }
-    }
-  );
+  addMessageListener();
 
   // 切换标签时运行函数
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
-      loadSettings().then(() => {
-        addDatePrefixToEvents();
-      });
+      applyLoadedSettings();
     }
   });
 }
@@ -386,6 +448,11 @@ function parseDateFromBirthdayEventId(eventId) {
 }
 
 function addDatePrefixToEvents() {
+  if (!extensionContextValid) {
+    setPrefixPending(false);
+    return;
+  }
+
   setPrefixPending(settings.enableExtension);
 
   if (!settings.enableExtension) {

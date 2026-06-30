@@ -111,5 +111,24 @@ en.setDatePrefix(prefixHost, '', false);
 assert.strictEqual(prefixHost.dataset.datePrefix, undefined);
 assert.strictEqual(classes.has('date-prefix-ready'), true);
 assert.strictEqual(classes.has('date-prefix-host'), false);
+assert.strictEqual(en.canUseExtensionApi(), false);
+
+const invalidContext = loadContentScript('en-US');
+invalidContext.chrome = {
+  storage: { sync: { get: (_keys, callback) => callback({}) } },
+  runtime: {
+    id: 'test-extension',
+    get lastError() {
+      throw new Error('Extension context invalidated.');
+    },
+    onMessage: { addListener: () => {} }
+  }
+};
+let invalidLoaded = true;
+invalidContext.loadSettings((loaded) => {
+  invalidLoaded = loaded;
+});
+assert.strictEqual(invalidLoaded, false);
+assert.strictEqual(invalidContext.canUseExtensionApi(), false);
 
 console.log('content parser checks passed');

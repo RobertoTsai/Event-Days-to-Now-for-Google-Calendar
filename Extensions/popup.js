@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Load saved settings
   chrome.storage.sync.get(['enableExtension', 'showYearsForLongPeriods'], function(items) {
+    if (chrome.runtime.lastError) return;
+    items = items || {};
     enableExtension.checked = items.enableExtension !== false; // Default to true
     showYearsForLongPeriods.checked = items.showYearsForLongPeriods !== false; // Default to true
     updateYearsSettingVisibility();
@@ -15,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Save settings when checkboxes are clicked
   enableExtension.addEventListener('change', function() {
     chrome.storage.sync.set({ enableExtension: enableExtension.checked }, function() {
+      if (chrome.runtime.lastError) return;
       updateYearsSettingVisibility();
       updateStatus('Settings saved');
       notifyContentScript();
@@ -23,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   showYearsForLongPeriods.addEventListener('change', function() {
     chrome.storage.sync.set({ showYearsForLongPeriods: showYearsForLongPeriods.checked }, function() {
+      if (chrome.runtime.lastError) return;
       updateStatus('Settings saved');
       notifyContentScript();
     });
@@ -46,7 +50,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function notifyContentScript() {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      chrome.tabs.sendMessage(tabs[0].id, {action: "updateSettings"});
+      if (chrome.runtime.lastError || !tabs[0]?.id) return;
+      chrome.tabs.sendMessage(tabs[0].id, {action: "updateSettings"}, function() {
+        if (chrome.runtime.lastError) return;
+      });
     });
   }
 });
