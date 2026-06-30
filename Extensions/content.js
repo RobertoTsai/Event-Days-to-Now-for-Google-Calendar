@@ -137,58 +137,197 @@ function formatTimeDifference(dayDifference, hourDifference, isAllDay, isToday, 
   return `${dayDifference}d`;
 }
 
-function parseDateFromString(dateString) {
-  // Chinese date format: 2024年7月10日
-  // Japanese date format: 2024年 7月 10日
-  const chineseMatch = dateString.match(/(\d{4})年\s{0,1}(\d{1,2})月\s{0,1}(\d{1,2})日/);
-  if (chineseMatch) {
-    return new Date(
-      parseInt(chineseMatch[1]),
-      parseInt(chineseMatch[2]) - 1,
-      parseInt(chineseMatch[3])
-    );
+let localizedMonthCacheKey = '';
+let localizedMonthCache = null;
+const FALLBACK_LOCALES = [
+  'af', 'am', 'ar', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'el', 'en', 'es',
+  'et', 'eu', 'fa', 'fi', 'fil', 'fr', 'gl', 'gu', 'he', 'hi', 'hr', 'hu',
+  'id', 'is', 'it', 'ja', 'kn', 'ko', 'lt', 'lv', 'ml', 'mr', 'ms', 'nl',
+  'no', 'pl', 'pt', 'ro', 'ru', 'si', 'sk', 'sl', 'sr', 'sv', 'sw', 'ta',
+  'te', 'th', 'tr', 'uk', 'ur', 'vi', 'zh'
+];
+// ponytail: Google Calendar uses Sinhala Gregorian transliterations; add aliases only when Intl names differ.
+const MONTH_NAME_ALIASES = [
+  ['ජනවාරි', 0], ['පෙබරවාරි', 1], ['මාර්තු', 2], ['අප්‍රේල්', 3], ['මැයි', 4], ['ජූනි', 5],
+  ['ජූලි', 6], ['අගෝස්තු', 7], ['සැප්තැම්බර්', 8], ['ඔක්තෝබර්', 9], ['නොවැම්බර්', 10], ['දෙසැම්බර්', 11]
+];
+
+function makeLocalDate(year, monthIndex, day) {
+  const date = new Date(year, monthIndex, day);
+  return date.getFullYear() === year && date.getMonth() === monthIndex && date.getDate() === day ? date : null;
+}
+
+function getPageLocales() {
+  const nav = typeof navigator !== 'undefined' ? navigator : {};
+  const doc = typeof document !== 'undefined' ? document : {};
+  return [...new Set([
+    doc.documentElement?.lang,
+    nav.language,
+    ...(nav.languages || []),
+    ...Intl.DateTimeFormat.supportedLocalesOf(FALLBACK_LOCALES),
+    'en-US'
+  ].filter(Boolean))];
+}
+
+function normalizeDateText(text) {
+  return String(text).toLocaleLowerCase().replace(/[\u200e\u200f.]/g, '').trim();
+}
+
+function getLocalizedMonthNames() {
+  const locales = getPageLocales();
+  const cacheKey = locales.join('|');
+  if (localizedMonthCache && localizedMonthCacheKey === cacheKey) {
+    return localizedMonthCache;
   }
 
-  // Korean date format: 2024년 7월 10일
-  const koreanMatch = dateString.match(/(\d{4})년\s{0,1}(\d{1,2})월\s{0,1}(\d{1,2})일/);
-  if (koreanMatch) {
-    return new Date(
-      parseInt(koreanMatch[1]),
-      parseInt(koreanMatch[2]) - 1,
-      parseInt(koreanMatch[3])
-    );
+  const monthNames = new Map();
+  MONTH_NAME_ALIASES.forEach(([name, month]) => monthNames.set(normalizeDateText(name), month));
+  locales.forEach((locale) => {
+    for (let month = 0; month < 12; month += 1) {
+      ['long', 'short'].forEach((monthStyle) => {
+        [
+          { month: monthStyle },
+          { year: 'numeric', month: monthStyle, day: 'numeric' }
+        ].forEach((options) => {
+          const parts = new Intl.DateTimeFormat(locale, options).formatToParts(new Date(2026, month, 1));
+          parts.filter(part => part.type === 'month').forEach((part) => {
+            const name = normalizeDateText(part.value);
+            if (name && /\D/.test(name)) monthNames.set(name, month);
+          });
+        });
+      });
+    }
+  });
+
+  localizedMonthCacheKey = cacheKey;
+  localizedMonthCache = [...monthNames.entries()].sort((a, b) => b[0].length - a[0].length);
+  return localizedMonthCache;
+}
+
+function parseMachineDate(value) {
+  if (!value) return null;
+
+  const text = String(value).trim();
+  const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|[T\s])/);
+  if (isoMatch) {
+    if (text.length === 10) {
+      return makeLocalDate(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]));
+    }
+
+    const parsedDate = new Date(text);
+    return isNaN(parsedDate.getTime()) ? null : parsedDate;
   }
 
-  // English date format: July 10, 2024
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const englishMatch = dateString.match(/(?:.*,\s)(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:\s[–\d\s\w]*)?,\s+(\d{4})$/i);
-  if (englishMatch) {
-    const monthIndex = months.indexOf(englishMatch[1]);
-    if (monthIndex !== -1) {
-      return new Date(
-        parseInt(englishMatch[3]),
-        monthIndex,
-        parseInt(englishMatch[2])
-      );
-    }
+  const compactMatch = text.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (compactMatch) {
+    return makeLocalDate(parseInt(compactMatch[1]), parseInt(compactMatch[2]) - 1, parseInt(compactMatch[3]));
   }
-  else {
-    //Fixed a parsing issue where the date is in front of the event name.
-    const regex = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})\b/g;
-    const englishMatch2 = regex.exec(dateString);
-    if (englishMatch2){
-      const monthIndex2 = months.indexOf(englishMatch2[1]);
-    if (monthIndex2 !== -1) {
-        return new Date(
-          parseInt(englishMatch2[3]),
-          monthIndex2,
-          parseInt(englishMatch2[2])
-        );
-      }
-    }
+
+  if (/^\d{13}$/.test(text)) {
+    const parsedDate = new Date(parseInt(text));
+    return isNaN(parsedDate.getTime()) ? null : parsedDate;
+  }
+
+  if (/^\d{10}$/.test(text)) {
+    const parsedDate = new Date(parseInt(text) * 1000);
+    return isNaN(parsedDate.getTime()) ? null : parsedDate;
   }
 
   return null;
+}
+
+function parseDateFromElementMetadata(eventElement) {
+  const datetimeElement = eventElement.matches?.('[datetime]') ? eventElement : eventElement.querySelector?.('[datetime]');
+  const datetimeDate = parseMachineDate(datetimeElement?.getAttribute('datetime'));
+  if (datetimeDate) return datetimeDate;
+
+  const dateAttributes = ['data-start-time', 'data-starttime', 'data-start-date', 'data-date', 'data-datekey', 'data-day'];
+  for (const attribute of dateAttributes) {
+    const ownDate = parseMachineDate(eventElement.getAttribute(attribute));
+    if (ownDate) return ownDate;
+
+    const childDate = parseMachineDate(eventElement.querySelector?.(`[${attribute}]`)?.getAttribute(attribute));
+    if (childDate) return childDate;
+  }
+
+  return null;
+}
+
+function parseNumericDateFromString(dateString) {
+  const yearFirstMatch = dateString.match(/\b(\d{4})\s*(?:年|년|[./-])\s*(\d{1,2})\s*(?:月|월|[./-])\s*(\d{1,2})/);
+  if (yearFirstMatch) {
+    return makeLocalDate(parseInt(yearFirstMatch[1]), parseInt(yearFirstMatch[2]) - 1, parseInt(yearFirstMatch[3]));
+  }
+
+  const numericMatch = dateString.match(/\b(\d{1,2})[./-](\d{1,2})[./-](\d{4})\b/);
+  if (!numericMatch) return null;
+
+  const first = parseInt(numericMatch[1]);
+  const second = parseInt(numericMatch[2]);
+  const year = parseInt(numericMatch[3]);
+  const preferDayFirst = first > 12 || (second <= 12 && !/^en-US\b/i.test(getPageLocales()[0] || ''));
+  const day = preferDayFirst ? first : second;
+  const month = preferDayFirst ? second : first;
+  return makeLocalDate(year, month - 1, day);
+}
+
+function parseLocalizedDateFromString(dateString) {
+  const yearMatch = dateString.match(/\b(\d{4})\b/);
+  if (!yearMatch) return null;
+
+  const year = parseInt(yearMatch[1]);
+  const text = normalizeDateText(dateString);
+  const dateMatches = [];
+
+  for (const [monthName, monthIndex] of getLocalizedMonthNames()) {
+    let monthPosition = text.indexOf(monthName);
+    while (monthPosition !== -1) {
+      const beforeMonth = text.slice(0, monthPosition);
+      const afterMonth = text.slice(monthPosition + monthName.length);
+      const beforeDays = [...beforeMonth.matchAll(/\b(\d{1,2})\b/g)]
+        .map(match => ({ day: parseInt(match[1]), distance: monthPosition - match.index }))
+        .filter(match => match.day >= 1 && match.day <= 31);
+      const afterDays = [...afterMonth.matchAll(/\b(\d{1,2})\b/g)]
+        .map(match => ({ day: parseInt(match[1]), distance: match.index }))
+        .filter(match => match.day >= 1 && match.day <= 31);
+      const dayCandidates = [beforeDays[beforeDays.length - 1], afterDays[0]].filter(Boolean);
+
+      for (const { day, distance } of dayCandidates) {
+        const parsedDate = makeLocalDate(year, monthIndex, day);
+        if (parsedDate) {
+          dateMatches.push({
+            date: parsedDate,
+            yearDistance: Math.abs(monthPosition - yearMatch.index),
+            dayDistance: distance
+          });
+        }
+      }
+
+      monthPosition = text.indexOf(monthName, monthPosition + monthName.length);
+    }
+  }
+
+  dateMatches.sort((a, b) => a.yearDistance - b.yearDistance || a.dayDistance - b.dayDistance);
+  return dateMatches[0]?.date || null;
+}
+
+function parseDateFromString(dateString) {
+  return parseNumericDateFromString(dateString) || parseLocalizedDateFromString(dateString);
+}
+
+function parseTimeFromString(dateString) {
+  const timeMatch = dateString.match(/\b(\d{1,2}):(\d{2})\s*([ap]\.?\s?m\.?)?/i);
+  if (!timeMatch) return null;
+
+  let hours = parseInt(timeMatch[1]);
+  const minutes = parseInt(timeMatch[2]);
+  const marker = (timeMatch[3] || '').replace(/[^apm]/gi, '').toLowerCase();
+  const isPm = marker === 'pm' || /下午|晚上|午後|오후/.test(dateString);
+  const isAm = marker === 'am' || /上午|早上|凌晨|午前|오전/.test(dateString);
+
+  if (isPm && hours < 12) hours += 12;
+  if (isAm && hours === 12) hours = 0;
+  return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59 ? { hours, minutes } : null;
 }
 
 // 从生日事件的 eventId 中提取日期
@@ -253,19 +392,14 @@ function addDatePrefixToEvents() {
       // 生日事件通常是全天事件
       isAllDay = true;
     } else {
-      // 使用原来的方式解析日期
       const ariaLabel = eventElement.getAttribute('aria-label') || titleElement.getAttribute('aria-label') || eventElement.querySelector('.XuJrye')?.textContent;
-      if (ariaLabel) {
-        const dateString = ariaLabel;
-        eventDate = parseDateFromString(dateString);
-        isAllDay = !ariaLabel.match(/\d{1,2}:\d{2}/);
+      eventDate = (ariaLabel ? parseDateFromString(ariaLabel) : null) || parseDateFromElementMetadata(eventElement);
 
-        if (!isAllDay && eventDate) {
-          const timeMatch = ariaLabel.match(/(\d{1,2}):(\d{2})/);
-          if (timeMatch) {
-            eventDate.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]));
-          }
-        }
+      const eventTime = ariaLabel ? parseTimeFromString(ariaLabel) : null;
+      isAllDay = !eventTime && (!eventDate || (eventDate.getHours() === 0 && eventDate.getMinutes() === 0));
+
+      if (eventDate && eventTime) {
+        eventDate.setHours(eventTime.hours, eventTime.minutes, 0, 0);
       }
     }
 
