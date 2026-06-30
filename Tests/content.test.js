@@ -33,7 +33,7 @@ function loadContentScript(locale) {
   };
 
   vm.createContext(sandbox);
-  vm.runInContext(fs.readFileSync(path.join(__dirname, 'content.js'), 'utf8'), sandbox);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'Extensions', 'content.js'), 'utf8'), sandbox);
   return sandbox;
 }
 
