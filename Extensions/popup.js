@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
   var enableExtension = document.getElementById('enableExtension');
   var showYearsForLongPeriods = document.getElementById('showYearsForLongPeriods');
   var yearsSettingItem = document.getElementById('yearsSettingItem');
+  var yearsExampleOn = document.getElementById('yearsExampleOn');
+  var yearsExampleOff = document.getElementById('yearsExampleOff');
   var status = document.getElementById('status');
 
   // Load saved settings
@@ -27,17 +29,24 @@ document.addEventListener('DOMContentLoaded', function() {
   showYearsForLongPeriods.addEventListener('change', function() {
     chrome.storage.sync.set({ showYearsForLongPeriods: showYearsForLongPeriods.checked }, function() {
       if (chrome.runtime.lastError) return;
+      updateYearsExampleState();
       updateStatus('Settings saved');
       notifyContentScript();
     });
   });
 
   function updateYearsSettingVisibility() {
-    if (enableExtension.checked) {
-      yearsSettingItem.classList.remove('disabled');
-    } else {
-      yearsSettingItem.classList.add('disabled');
-    }
+    var enabled = enableExtension.checked;
+    yearsSettingItem.classList.toggle('disabled', !enabled);
+    yearsSettingItem.setAttribute('aria-disabled', String(!enabled));
+    showYearsForLongPeriods.disabled = !enabled;
+    updateYearsExampleState();
+  }
+
+  function updateYearsExampleState() {
+    var showYears = showYearsForLongPeriods.checked;
+    yearsExampleOn.classList.toggle('active', showYears);
+    yearsExampleOff.classList.toggle('active', !showYears);
   }
 
   function updateStatus(message) {
