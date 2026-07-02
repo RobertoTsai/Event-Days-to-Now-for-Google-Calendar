@@ -10,53 +10,20 @@ https://chromewebstore.google.com/detail/hceoajkodhbjkoiopgehogkfplgpmpdj
 
 ## Key Features:
 
-1. **Dynamic Date Prefixes**: Automatically adds time indicators to your Google Calendar events.
-    - For future events: Shows how many days or hours until the event.
-    - For past events: Displays how many days have passed since the event occurred.
-2. **Intelligent Time Display**:
-    - Events within 24 hours: Shown in hours (e.g., 5h)
-    - Events beyond 24 hours: Displayed in days (e.g., 3d)
-    - Long-term events: Option to display in years and days (e.g., 1y5d)
-    - Unit labels can be customized, such as 1y5d -> 1年5天
-3. **Customizable Settings**:
-    - Toggle the display of years for long-term events
-    - Customize year, day, and hour labels while keeping y/d/h as defaults
-    - Preview the display result for long-term events directly in the popup
-    - Choose the popup display language manually or follow the browser language automatically
-    - Easily accessible settings through the extension icon
-4. **Seamless Integration**:
-    - Works directly within your Google Calendar interface
-    - No need to navigate away from your calendar view
-    - Uses CSS-based labels to reduce layout movement when Google Calendar refreshes event elements
-5. **Real-time Updates**:
-    - Prefixes update automatically as time passes
-    - Always shows the most current time difference
-6. **User-Friendly Design**:
-    - Modernized popup settings layout with clearer descriptions and examples
-    - Clean and unobtrusive visual style
-    - Doesn't interfere with Google Calendar's existing functionality
-7. **Multi-Language Support**:
-    - Popup settings support English, Traditional Chinese, Simplified Chinese, Spanish, Arabic, Hindi, Portuguese, Bengali, Russian, Japanese, German, French, and Korean
-    - Automatically selects the popup language from the user's browser language
-    - Reads Google Calendar event labels across localized calendar UIs
-    - Uses browser locale data for month names instead of hard-coded English-only parsing
-    - Includes support for contact birthday events and localized month labels such as Sinhala Gregorian month names
-8. **Stable Extension Behavior**:
-    - Handles Google Calendar DOM refreshes without repeatedly inserting extra title elements
-    - Guards Chrome extension API calls when the extension context is refreshed or invalidated
+1. **See event timing at a glance**: Adds compact prefixes to Google Calendar events, such as 5h, 3d, or 1y5d.
+2. **Works with future and past events**: Quickly see how much time remains or how many days have passed.
+3. **Customizable display**: Toggle year-based long-period display and customize year, day, and hour labels, such as 1年5天.
+4. **Localized settings popup**: Supports 13 popup languages with browser-language auto detection and a manual language selector.
+5. **Built for Google Calendar**: Works directly in your calendar view with clean CSS-based labels and automatic updates.
+6. **Simple setup**: Open the extension popup to adjust settings and preview long-period display examples.
 
 ---
 
 ## Release Notes
 
-- **1.2**: Redesigned the popup settings UI, added examples for long-term year display, added customizable year/day/hour unit labels with y/d/h defaults and automatic fallback for empty inputs, localized the popup settings UI in 13 languages, added browser-language auto selection plus a manual language selector, and added popup i18n checks.
-- **1.0.14**: Integrated update after 1.0.7. Improved localized date parsing beyond the original supported languages, fixed incorrect date detection from nearby calendar DOM metadata, added Sinhala Gregorian month-name handling, changed prefix rendering from inserted spans to CSS-based labels, reduced first-render layout movement, sped up event refresh handling, guarded Chrome API calls to avoid extension context invalidated errors, and kept test files outside the Chrome Web Store upload folder.
-- **1.0.7**: Fix contact birthday problems.
-- **1.0.6**: Change extension name & modify date tag style.
-- **1.0.5**: Prefix label display adjustment.
-- **1.0.4**: Fixed the problem of not displaying prefixes for part-time events when viewing "Days" or "Weeks".
-- **1.0.3**: Optimize the appearance of the prefix.
-- **1.0.2**: Change prefix style.
+- **1.2**: Added a modern settings popup, customizable year/day/hour labels, long-period examples, and 13 popup display languages.
+- **1.0.14**: Improved localized date detection, birthday event support, CSS-based prefix rendering, refresh performance, and extension stability.
+- **1.0.7 and earlier**: Added contact birthday fixes, visual refinements, and event prefix display improvements.
 
 ---
 
