@@ -90,6 +90,42 @@
       grid-template-columns: 1fr;
     }
 
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .checkbox-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 8px 9px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      color: #334155;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .checkbox-option:focus-within {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.14);
+    }
+
+    .checkbox-option input {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      accent-color: #1a73e8;
+    }
+
+    .setting-item.disabled .checkbox-option {
+      cursor: default;
+    }
+
     .switch {
       position: relative;
       display: inline-block;
@@ -292,6 +328,50 @@
         </div>
         <label class="switch" title="Enable Date Prefixer" data-i18n-title="enableLabel">
           <input type="checkbox" id="enableExtension" aria-label="Enable Date Prefixer" data-i18n-aria-label="enableLabel">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-item stacked" id="typeFiltersSettingItem">
+        <div>
+          <span class="setting-label" data-i18n="typeFiltersLabel">Show by event type</span>
+          <p class="setting-description" data-i18n="typeFiltersDescription">Choose which event types receive countdown labels.</p>
+        </div>
+        <div class="checkbox-grid">
+          <label class="checkbox-option">
+            <input type="checkbox" id="showAllDayEvents">
+            <span data-i18n="allDayLabel">All-day</span>
+          </label>
+          <label class="checkbox-option">
+            <input type="checkbox" id="showTimedEvents">
+            <span data-i18n="timedLabel">Timed</span>
+          </label>
+          <label class="checkbox-option">
+            <input type="checkbox" id="showTasks">
+            <span data-i18n="tasksLabel">Tasks</span>
+          </label>
+          <label class="checkbox-option">
+            <input type="checkbox" id="showBirthdays">
+            <span data-i18n="birthdaysLabel">Birthdays</span>
+          </label>
+        </div>
+      </div>
+      <div class="setting-item" id="declinedEventsSettingItem">
+        <div>
+          <span class="setting-label" data-i18n="showDeclinedEventsLabel">Show declined event labels</span>
+          <p class="setting-description" data-i18n="showDeclinedEventsDescription">Show countdown labels on events displayed with a strikethrough.</p>
+        </div>
+        <label class="switch" title="Show declined event labels" data-i18n-title="showDeclinedEventsLabel">
+          <input type="checkbox" id="showDeclinedEvents" aria-label="Show declined event labels" data-i18n-aria-label="showDeclinedEventsLabel">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-item" id="pastEventsSettingItem">
+        <div>
+          <span class="setting-label" data-i18n="showPastEventsLabel">Show past event labels</span>
+          <p class="setting-description" data-i18n="showPastEventsDescription">Show negative labels, such as -14d, for events before today.</p>
+        </div>
+        <label class="switch" title="Show past event labels" data-i18n-title="showPastEventsLabel">
+          <input type="checkbox" id="showPastEvents" aria-label="Show past event labels" data-i18n-aria-label="showPastEventsLabel">
           <span class="slider"></span>
         </label>
       </div>

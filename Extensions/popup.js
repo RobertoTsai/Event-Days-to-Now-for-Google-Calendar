@@ -2,6 +2,22 @@
 document.addEventListener('DOMContentLoaded', function() {
   var enableExtension = document.getElementById('enableExtension');
   var showYearsForLongPeriods = document.getElementById('showYearsForLongPeriods');
+  var visibilitySettingIds = [
+    'showAllDayEvents',
+    'showTimedEvents',
+    'showTasks',
+    'showBirthdays',
+    'showDeclinedEvents',
+    'showPastEvents'
+  ];
+  var visibilityControls = visibilitySettingIds.map(function(id) {
+    return document.getElementById(id);
+  });
+  var filterSettingItems = [
+    document.getElementById('typeFiltersSettingItem'),
+    document.getElementById('declinedEventsSettingItem'),
+    document.getElementById('pastEventsSettingItem')
+  ];
   var yearsSettingItem = document.getElementById('yearsSettingItem');
   var unitLabelsSettingItem = document.getElementById('unitLabelsSettingItem');
   var yearUnitLabel = document.getElementById('yearUnitLabel');
@@ -40,6 +56,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: 'Add day or hour prefixes before event titles.',
       showYearsLabel: 'Show years for long periods',
       showYearsDescription: 'For events 365+ days away, shorten long day counts.',
+      typeFiltersLabel: 'Show by event type',
+      typeFiltersDescription: 'Choose which event types receive countdown labels.',
+      allDayLabel: 'All-day',
+      timedLabel: 'Timed',
+      tasksLabel: 'Tasks',
+      birthdaysLabel: 'Birthdays',
+      showDeclinedEventsLabel: 'Show declined event labels',
+      showDeclinedEventsDescription: 'Show countdown labels on events displayed with a strikethrough.',
+      showPastEventsLabel: 'Show past event labels',
+      showPastEventsDescription: 'Show negative labels, such as -14d, for events before today.',
       showYearsExamples: 'Show years examples',
       onLabel: 'On',
       offLabel: 'Off',
@@ -62,6 +88,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: '在事件標題前加入天數或時數前綴。',
       showYearsLabel: '長期間顯示年數',
       showYearsDescription: '365 天以上的事件，縮短過長的天數顯示。',
+      typeFiltersLabel: '依事件類型顯示',
+      typeFiltersDescription: '選擇哪些事件類型顯示倒數標籤。',
+      allDayLabel: '全天',
+      timedLabel: '非全天',
+      tasksLabel: '工作',
+      birthdaysLabel: '生日',
+      showDeclinedEventsLabel: '顯示不參加事件標籤',
+      showDeclinedEventsDescription: '顯示有刪除線之不參加事件的倒數標籤。',
+      showPastEventsLabel: '顯示過去事件標籤',
+      showPastEventsDescription: '為今天以前的事件顯示負數標籤，例如 -14d。',
       showYearsExamples: '顯示年數範例',
       onLabel: '開',
       offLabel: '關',
@@ -84,6 +120,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: '在事件标题前添加天数或小时前缀。',
       showYearsLabel: '长时间段显示年数',
       showYearsDescription: '365 天以上的事件，缩短过长的天数显示。',
+      typeFiltersLabel: '按事件类型显示',
+      typeFiltersDescription: '选择哪些事件类型显示倒计时标签。',
+      allDayLabel: '全天',
+      timedLabel: '非全天',
+      tasksLabel: '任务',
+      birthdaysLabel: '生日',
+      showDeclinedEventsLabel: '显示不参加事件标签',
+      showDeclinedEventsDescription: '显示带删除线的不参加事件的倒计时标签。',
+      showPastEventsLabel: '显示过去事件标签',
+      showPastEventsDescription: '为今天以前的事件显示负数标签，例如 -14d。',
       showYearsExamples: '显示年数示例',
       onLabel: '开',
       offLabel: '关',
@@ -106,6 +152,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: 'Agrega prefijos de días u horas antes de los títulos.',
       showYearsLabel: 'Mostrar años en periodos largos',
       showYearsDescription: 'Para eventos a 365+ días, acorta los conteos largos.',
+      typeFiltersLabel: 'Mostrar por tipo de evento',
+      typeFiltersDescription: 'Elige qué tipos de eventos reciben etiquetas de cuenta regresiva.',
+      allDayLabel: 'Todo el día',
+      timedLabel: 'Con hora',
+      tasksLabel: 'Tareas',
+      birthdaysLabel: 'Cumpleaños',
+      showDeclinedEventsLabel: 'Mostrar etiquetas de eventos rechazados',
+      showDeclinedEventsDescription: 'Muestra etiquetas de cuenta regresiva en eventos tachados.',
+      showPastEventsLabel: 'Mostrar etiquetas de eventos pasados',
+      showPastEventsDescription: 'Muestra etiquetas negativas, como -14d, para eventos anteriores a hoy.',
       showYearsExamples: 'Ejemplos de años',
       onLabel: 'Sí',
       offLabel: 'No',
@@ -128,6 +184,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: 'إضافة بادئات الأيام أو الساعات قبل عناوين الأحداث.',
       showYearsLabel: 'عرض السنوات للفترات الطويلة',
       showYearsDescription: 'للأحداث بعد 365 يومًا أو أكثر، اختصر عدد الأيام الطويل.',
+      typeFiltersLabel: 'العرض حسب نوع الحدث',
+      typeFiltersDescription: 'اختر أنواع الأحداث التي تعرض تسميات العد التنازلي.',
+      allDayLabel: 'طوال اليوم',
+      timedLabel: 'بوقت محدد',
+      tasksLabel: 'المهام',
+      birthdaysLabel: 'أعياد الميلاد',
+      showDeclinedEventsLabel: 'عرض تسميات الأحداث المرفوضة',
+      showDeclinedEventsDescription: 'عرض تسميات العد التنازلي للأحداث المشطوبة.',
+      showPastEventsLabel: 'عرض تسميات الأحداث الماضية',
+      showPastEventsDescription: 'عرض تسميات سالبة، مثل -14d، للأحداث السابقة لليوم.',
       showYearsExamples: 'أمثلة عرض السنوات',
       onLabel: 'تشغيل',
       offLabel: 'إيقاف',
@@ -150,6 +216,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: 'इवेंट शीर्षक से पहले दिन या घंटे का प्रीफिक्स जोड़ें।',
       showYearsLabel: 'लंबी अवधि में वर्ष दिखाएं',
       showYearsDescription: '365+ दिन दूर इवेंट के लिए लंबे दिन गिनती को छोटा करें।',
+      typeFiltersLabel: 'इवेंट प्रकार के अनुसार दिखाएँ',
+      typeFiltersDescription: 'चुनें कि किन इवेंट प्रकारों पर काउंटडाउन लेबल दिखें।',
+      allDayLabel: 'पूरे दिन',
+      timedLabel: 'समयबद्ध',
+      tasksLabel: 'टास्क',
+      birthdaysLabel: 'जन्मदिन',
+      showDeclinedEventsLabel: 'अस्वीकृत इवेंट के लेबल दिखाएँ',
+      showDeclinedEventsDescription: 'स्ट्राइकथ्रू वाले इवेंट पर काउंटडाउन लेबल दिखाएँ।',
+      showPastEventsLabel: 'पिछले इवेंट के लेबल दिखाएँ',
+      showPastEventsDescription: 'आज से पहले के इवेंट पर -14d जैसे ऋणात्मक लेबल दिखाएँ।',
       showYearsExamples: 'वर्ष दिखाने के उदाहरण',
       onLabel: 'चालू',
       offLabel: 'बंद',
@@ -172,6 +248,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: 'Adiciona prefixos de dias ou horas antes dos títulos.',
       showYearsLabel: 'Mostrar anos em períodos longos',
       showYearsDescription: 'Para eventos a 365+ dias, encurta contagens longas.',
+      typeFiltersLabel: 'Mostrar por tipo de evento',
+      typeFiltersDescription: 'Escolha quais tipos de eventos recebem rótulos de contagem regressiva.',
+      allDayLabel: 'Dia inteiro',
+      timedLabel: 'Com horário',
+      tasksLabel: 'Tarefas',
+      birthdaysLabel: 'Aniversários',
+      showDeclinedEventsLabel: 'Mostrar rótulos de eventos recusados',
+      showDeclinedEventsDescription: 'Mostra rótulos de contagem regressiva em eventos riscados.',
+      showPastEventsLabel: 'Mostrar rótulos de eventos passados',
+      showPastEventsDescription: 'Mostra rótulos negativos, como -14d, para eventos anteriores a hoje.',
       showYearsExamples: 'Exemplos de anos',
       onLabel: 'Ligado',
       offLabel: 'Desligado',
@@ -194,6 +280,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: 'ইভেন্ট শিরোনামের আগে দিন বা ঘণ্টার প্রিফিক্স যোগ করুন।',
       showYearsLabel: 'দীর্ঘ সময়ে বছর দেখান',
       showYearsDescription: '365+ দিন দূরের ইভেন্টে দীর্ঘ দিনের সংখ্যা ছোট করুন।',
+      typeFiltersLabel: 'ইভেন্টের ধরন অনুযায়ী দেখান',
+      typeFiltersDescription: 'কোন ধরনের ইভেন্টে কাউন্টডাউন লেবেল দেখানো হবে তা বেছে নিন।',
+      allDayLabel: 'সারাদিন',
+      timedLabel: 'নির্দিষ্ট সময়',
+      tasksLabel: 'টাস্ক',
+      birthdaysLabel: 'জন্মদিন',
+      showDeclinedEventsLabel: 'প্রত্যাখ্যাত ইভেন্টের লেবেল দেখান',
+      showDeclinedEventsDescription: 'স্ট্রাইকথ্রু থাকা ইভেন্টে কাউন্টডাউন লেবেল দেখান।',
+      showPastEventsLabel: 'অতীত ইভেন্টের লেবেল দেখান',
+      showPastEventsDescription: 'আজকের আগের ইভেন্টে -14d-এর মতো ঋণাত্মক লেবেল দেখান।',
       showYearsExamples: 'বছর দেখানোর উদাহরণ',
       onLabel: 'চালু',
       offLabel: 'বন্ধ',
@@ -216,6 +312,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: 'Добавляет дни или часы перед названиями событий.',
       showYearsLabel: 'Показывать годы для длинных периодов',
       showYearsDescription: 'Для событий дальше 365 дней сокращает длинный счет дней.',
+      typeFiltersLabel: 'Показывать по типу события',
+      typeFiltersDescription: 'Выберите типы событий, для которых показывать метки отсчёта.',
+      allDayLabel: 'На весь день',
+      timedLabel: 'С указанием времени',
+      tasksLabel: 'Задачи',
+      birthdaysLabel: 'Дни рождения',
+      showDeclinedEventsLabel: 'Показывать метки отклонённых событий',
+      showDeclinedEventsDescription: 'Показывать метки отсчёта для зачёркнутых событий.',
+      showPastEventsLabel: 'Показывать метки прошедших событий',
+      showPastEventsDescription: 'Показывать отрицательные метки, например -14d, для событий до сегодняшнего дня.',
       showYearsExamples: 'Примеры отображения лет',
       onLabel: 'Вкл.',
       offLabel: 'Выкл.',
@@ -238,6 +344,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: 'イベント名の前に日数または時間の接頭辞を追加します。',
       showYearsLabel: '長期間は年数を表示',
       showYearsDescription: '365 日以上先のイベントの長い日数表示を短くします。',
+      typeFiltersLabel: '予定の種類別に表示',
+      typeFiltersDescription: 'カウントダウンラベルを表示する予定の種類を選択します。',
+      allDayLabel: '終日',
+      timedLabel: '時間指定',
+      tasksLabel: 'タスク',
+      birthdaysLabel: '誕生日',
+      showDeclinedEventsLabel: '不参加の予定ラベルを表示',
+      showDeclinedEventsDescription: '取り消し線付きの不参加予定にカウントダウンラベルを表示します。',
+      showPastEventsLabel: '過去の予定ラベルを表示',
+      showPastEventsDescription: '今日より前の予定に -14d のような負のラベルを表示します。',
       showYearsExamples: '年数表示の例',
       onLabel: 'オン',
       offLabel: 'オフ',
@@ -260,6 +376,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: 'Fügt Tages- oder Stundenpräfixe vor Ereignistiteln hinzu.',
       showYearsLabel: 'Jahre für lange Zeiträume anzeigen',
       showYearsDescription: 'Kürzt lange Tageszahlen für Ereignisse ab 365 Tagen.',
+      typeFiltersLabel: 'Nach Ereignistyp anzeigen',
+      typeFiltersDescription: 'Wähle, welche Ereignistypen Countdown-Labels erhalten.',
+      allDayLabel: 'Ganztägig',
+      timedLabel: 'Mit Uhrzeit',
+      tasksLabel: 'Aufgaben',
+      birthdaysLabel: 'Geburtstage',
+      showDeclinedEventsLabel: 'Labels abgelehnter Ereignisse anzeigen',
+      showDeclinedEventsDescription: 'Countdown-Labels bei durchgestrichenen Ereignissen anzeigen.',
+      showPastEventsLabel: 'Labels vergangener Ereignisse anzeigen',
+      showPastEventsDescription: 'Negative Labels wie -14d für Ereignisse vor heute anzeigen.',
       showYearsExamples: 'Beispiele für Jahre',
       onLabel: 'Ein',
       offLabel: 'Aus',
@@ -282,6 +408,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: 'Ajoute des préfixes en jours ou heures avant les titres.',
       showYearsLabel: 'Afficher les années pour les longues durées',
       showYearsDescription: 'Pour les événements à 365+ jours, raccourcit les longs comptes.',
+      typeFiltersLabel: 'Afficher par type d’événement',
+      typeFiltersDescription: 'Choisissez les types d’événements qui reçoivent des libellés de compte à rebours.',
+      allDayLabel: 'Toute la journée',
+      timedLabel: 'Avec horaire',
+      tasksLabel: 'Tâches',
+      birthdaysLabel: 'Anniversaires',
+      showDeclinedEventsLabel: 'Afficher les libellés des événements refusés',
+      showDeclinedEventsDescription: 'Affiche les libellés de compte à rebours sur les événements barrés.',
+      showPastEventsLabel: 'Afficher les libellés des événements passés',
+      showPastEventsDescription: 'Affiche des libellés négatifs, comme -14d, pour les événements antérieurs à aujourd’hui.',
       showYearsExamples: 'Exemples avec années',
       onLabel: 'Activé',
       offLabel: 'Désactivé',
@@ -304,6 +440,16 @@ document.addEventListener('DOMContentLoaded', function() {
       enableDescription: '이벤트 제목 앞에 일 또는 시간 접두사를 추가합니다.',
       showYearsLabel: '긴 기간에 연도 표시',
       showYearsDescription: '365일 이상 남은 이벤트의 긴 일수 표시를 줄입니다.',
+      typeFiltersLabel: '일정 유형별 표시',
+      typeFiltersDescription: '카운트다운 라벨을 표시할 일정 유형을 선택하세요.',
+      allDayLabel: '종일',
+      timedLabel: '시간 지정',
+      tasksLabel: '할 일',
+      birthdaysLabel: '생일',
+      showDeclinedEventsLabel: '불참 일정 라벨 표시',
+      showDeclinedEventsDescription: '취소선으로 표시된 불참 일정에 카운트다운 라벨을 표시합니다.',
+      showPastEventsLabel: '지난 일정 라벨 표시',
+      showPastEventsDescription: '오늘 이전 일정에 -14d와 같은 음수 라벨을 표시합니다.',
       showYearsExamples: '연도 표시 예시',
       onLabel: '켜짐',
       offLabel: '꺼짐',
@@ -331,24 +477,27 @@ document.addEventListener('DOMContentLoaded', function() {
     'dayUnitLabel',
     'hourUnitLabel',
     'displayLanguage'
-  ], function(items) {
+  ].concat(visibilitySettingIds), function(items) {
     if (chrome.runtime.lastError) return;
     items = items || {};
     displayLanguage.value = getStoredLanguage(items.displayLanguage);
     applyLanguage(resolveLanguage(displayLanguage.value));
     enableExtension.checked = items.enableExtension !== false; // Default to true
     showYearsForLongPeriods.checked = items.showYearsForLongPeriods !== false; // Default to true
+    visibilityControls.forEach(function(control) {
+      control.checked = items[control.id] !== false;
+    });
     yearUnitLabel.value = getUnitLabel(items.yearUnitLabel, 'y');
     dayUnitLabel.value = getUnitLabel(items.dayUnitLabel, 'd');
     hourUnitLabel.value = getUnitLabel(items.hourUnitLabel, 'h');
-    updateYearsSettingVisibility();
+    updateSettingsAvailability();
   });
 
   // Save settings when controls are changed
   enableExtension.addEventListener('change', function() {
     chrome.storage.sync.set({ enableExtension: enableExtension.checked }, function() {
       if (chrome.runtime.lastError) return;
-      updateYearsSettingVisibility();
+      updateSettingsAvailability();
       updateStatus(getMessage('settingsSaved'));
       notifyContentScript();
     });
@@ -376,13 +525,26 @@ document.addEventListener('DOMContentLoaded', function() {
     input.addEventListener('change', saveUnitLabels);
   });
 
-  function updateYearsSettingVisibility() {
+  visibilityControls.forEach(function(control) {
+    control.addEventListener('change', function() {
+      chrome.storage.sync.set({ [control.id]: control.checked }, function() {
+        if (chrome.runtime.lastError) return;
+        updateStatus(getMessage('settingsSaved'));
+        notifyContentScript();
+      });
+    });
+  });
+
+  function updateSettingsAvailability() {
     var enabled = enableExtension.checked;
-    yearsSettingItem.classList.toggle('disabled', !enabled);
-    unitLabelsSettingItem.classList.toggle('disabled', !enabled);
-    yearsSettingItem.setAttribute('aria-disabled', String(!enabled));
-    unitLabelsSettingItem.setAttribute('aria-disabled', String(!enabled));
+    [yearsSettingItem, unitLabelsSettingItem].concat(filterSettingItems).forEach(function(item) {
+      item.classList.toggle('disabled', !enabled);
+      item.setAttribute('aria-disabled', String(!enabled));
+    });
     showYearsForLongPeriods.disabled = !enabled;
+    visibilityControls.forEach(function(control) {
+      control.disabled = !enabled;
+    });
     yearUnitLabel.disabled = !enabled;
     dayUnitLabel.disabled = !enabled;
     hourUnitLabel.disabled = !enabled;

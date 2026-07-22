@@ -2,6 +2,12 @@
 let settings = {
   enableExtension: true,
   showYearsForLongPeriods: true,
+  showAllDayEvents: true,
+  showTimedEvents: true,
+  showTasks: true,
+  showBirthdays: true,
+  showDeclinedEvents: true,
+  showPastEvents: true,
   yearUnitLabel: 'y',
   dayUnitLabel: 'd',
   hourUnitLabel: 'h'
@@ -18,7 +24,19 @@ function loadSettings(done = () => {}) {
   }
 
   try {
-    chrome.storage.sync.get(['enableExtension', 'showYearsForLongPeriods', 'yearUnitLabel', 'dayUnitLabel', 'hourUnitLabel'], (result) => {
+    chrome.storage.sync.get([
+      'enableExtension',
+      'showYearsForLongPeriods',
+      'showAllDayEvents',
+      'showTimedEvents',
+      'showTasks',
+      'showBirthdays',
+      'showDeclinedEvents',
+      'showPastEvents',
+      'yearUnitLabel',
+      'dayUnitLabel',
+      'hourUnitLabel'
+    ], (result) => {
       try {
         const error = getRuntimeLastError();
         if (error) {
@@ -31,6 +49,12 @@ function loadSettings(done = () => {}) {
         settings = {
           enableExtension: result.enableExtension !== false,
           showYearsForLongPeriods: result.showYearsForLongPeriods !== false,
+          showAllDayEvents: result.showAllDayEvents !== false,
+          showTimedEvents: result.showTimedEvents !== false,
+          showTasks: result.showTasks !== false,
+          showBirthdays: result.showBirthdays !== false,
+          showDeclinedEvents: result.showDeclinedEvents !== false,
+          showPastEvents: result.showPastEvents !== false,
           yearUnitLabel: getUnitLabel(result.yearUnitLabel, 'y'),
           dayUnitLabel: getUnitLabel(result.dayUnitLabel, 'd'),
           hourUnitLabel: getUnitLabel(result.hourUnitLabel, 'h')
@@ -350,11 +374,10 @@ function parseNumericDateFromString(dateString) {
 }
 
 function parseLocalizedDateFromString(dateString) {
-  const yearMatch = dateString.match(/\b(\d{4})\b/);
-  if (!yearMatch) return null;
-
-  const year = parseInt(yearMatch[1]);
   const text = normalizeDateText(dateString);
+  const yearMatches = [...text.matchAll(/\b(\d{4})\b/g)];
+  if (!yearMatches.length) return null;
+
   const dateMatches = [];
 
   for (const [monthName, monthIndex] of getLocalizedMonthNames()) {
@@ -370,14 +393,17 @@ function parseLocalizedDateFromString(dateString) {
         .filter(match => match.day >= 1 && match.day <= 31);
       const dayCandidates = [beforeDays[beforeDays.length - 1], afterDays[0]].filter(Boolean);
 
-      for (const { day, distance } of dayCandidates) {
-        const parsedDate = makeLocalDate(year, monthIndex, day);
-        if (parsedDate) {
-          dateMatches.push({
-            date: parsedDate,
-            yearDistance: Math.abs(monthPosition - yearMatch.index),
-            dayDistance: distance
-          });
+      for (const yearMatch of yearMatches) {
+        const year = parseInt(yearMatch[1]);
+        for (const { day, distance } of dayCandidates) {
+          const parsedDate = makeLocalDate(year, monthIndex, day);
+          if (parsedDate) {
+            dateMatches.push({
+              date: parsedDate,
+              yearDistance: Math.abs(monthPosition - yearMatch.index),
+              dayDistance: distance
+            });
+          }
         }
       }
 
@@ -460,6 +486,30 @@ function parseDateFromBirthdayEventId(eventId) {
   return null;
 }
 
+function getEventType(eventElement, isAllDay) {
+  const eventId = eventElement.getAttribute('data-eventid') || '';
+  if (eventId.startsWith('bday_')) return 'birthday';
+  if (eventId.startsWith('tasks_')) return 'task';
+  return isAllDay ? 'allDay' : 'timed';
+}
+
+function isDeclinedEvent(eventElement) {
+  return !!(eventElement.matches?.('.w9eXqe') || eventElement.querySelector?.('.w9eXqe'));
+}
+
+function shouldShowDatePrefix(eventType, isDeclined, dayDifference) {
+  const typeSetting = {
+    allDay: 'showAllDayEvents',
+    timed: 'showTimedEvents',
+    task: 'showTasks',
+    birthday: 'showBirthdays'
+  }[eventType];
+
+  return settings[typeSetting] &&
+    (!isDeclined || settings.showDeclinedEvents) &&
+    (settings.showPastEvents || dayDifference >= 0);
+}
+
 function addDatePrefixToEvents() {
   if (!extensionContextValid) {
     setPrefixPending(false);
@@ -481,7 +531,7 @@ function addDatePrefixToEvents() {
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
   const dayAfterTomorrowStart = new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000);
   
-  const eventElements = document.querySelectorAll('[data-eventid]');
+  const eventElements = document.querySelectorAll('[data-eventchip][data-eventid], .uFexlc > [data-eventid]');
 
   eventElements.forEach((eventElement) => {
     let titleElement = eventElement.querySelector('.WBi6vc') || eventElement.querySelector('[role="button"]') || eventElement;
@@ -523,7 +573,10 @@ function addDatePrefixToEvents() {
     const dayDifference = Math.floor((eventDateStart - todayStart) / (1000 * 60 * 60 * 24));
     const hourDifference = (eventDate - now) / (1000 * 60 * 60);
 
-    const prefix = formatTimeDifference(dayDifference, hourDifference, isAllDay, isToday, isTomorrow);
+    const eventType = getEventType(eventElement, isAllDay);
+    const prefix = shouldShowDatePrefix(eventType, isDeclinedEvent(eventElement), dayDifference)
+      ? formatTimeDifference(dayDifference, hourDifference, isAllDay, isToday, isTomorrow)
+      : '';
 
     setDatePrefix(getPrefixHost(titleElement), prefix, isAllDay);
   });

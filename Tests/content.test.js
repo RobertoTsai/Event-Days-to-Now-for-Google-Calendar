@@ -37,6 +37,22 @@ function loadContentScript(locale) {
   return sandbox;
 }
 
+function eventWithId(eventId) {
+  return {
+    getAttribute: attribute => attribute === 'data-eventid' ? eventId : null
+  };
+}
+
+function eventWithClasses({ classes = [], childClasses = [] } = {}) {
+  const ownClasses = new Set(classes);
+  const nestedClasses = new Set(childClasses);
+
+  return {
+    matches: selector => selector === '.w9eXqe' && ownClasses.has('w9eXqe'),
+    querySelector: selector => selector === '.w9eXqe' && nestedClasses.has('w9eXqe') ? {} : null
+  };
+}
+
 const fr = loadContentScript('fr-FR');
 const frenchDate = fr.parseDateFromString('Equipe, mardi 30 juin 2026 a 15:30');
 assert.strictEqual(frenchDate.getFullYear(), 2026);
@@ -56,10 +72,61 @@ assert.strictEqual(chineseTime.hours, 15);
 assert.strictEqual(chineseTime.minutes, 30);
 
 const en = loadContentScript('en-US');
+assert.strictEqual(en.getEventType(eventWithId('bday_x'), true), 'birthday');
+assert.strictEqual(en.getEventType(eventWithId('tasks_x'), true), 'task');
+assert.strictEqual(en.getEventType(eventWithId('event_x'), true), 'allDay');
+assert.strictEqual(en.getEventType(eventWithId('event_x'), false), 'timed');
+
+assert.strictEqual(en.isDeclinedEvent(eventWithClasses()), false);
+assert.strictEqual(en.isDeclinedEvent(eventWithClasses({ classes: ['w9eXqe'] })), true);
+assert.strictEqual(en.isDeclinedEvent(eventWithClasses({ childClasses: ['w9eXqe'] })), true);
+assert.strictEqual(en.isDeclinedEvent(eventWithClasses({ childClasses: ['LKeQwe', 'UflSff'] })), false);
+
+[
+  ['showAllDayEvents', 'allDay'],
+  ['showTimedEvents', 'timed'],
+  ['showTasks', 'task'],
+  ['showBirthdays', 'birthday']
+].forEach(([settingName, eventType]) => {
+  vm.runInContext(`settings.${settingName} = false;`, en);
+  assert.strictEqual(en.shouldShowDatePrefix(eventType, false, 1), false, settingName);
+  assert.strictEqual(en.shouldShowDatePrefix('timed', false, 1), settingName !== 'showTimedEvents', `${settingName} only filters its event type`);
+  vm.runInContext(`settings.${settingName} = true;`, en);
+});
+
+vm.runInContext('settings.showDeclinedEvents = false;', en);
+assert.strictEqual(en.shouldShowDatePrefix('timed', true, 1), false);
+assert.strictEqual(en.shouldShowDatePrefix('timed', false, 1), true);
+vm.runInContext('settings.showDeclinedEvents = true;', en);
+
+vm.runInContext('settings.showPastEvents = false;', en);
+assert.strictEqual(en.shouldShowDatePrefix('timed', false, -1), false);
+assert.strictEqual(en.shouldShowDatePrefix('timed', false, 0), true);
+vm.runInContext('settings.showPastEvents = true;', en);
+assert.strictEqual(en.shouldShowDatePrefix('timed', false, -1), true);
+
+let eventSelector = '';
+en.document.querySelectorAll = selector => {
+  eventSelector = selector;
+  return [];
+};
+en.addDatePrefixToEvents();
+assert.strictEqual(eventSelector, '[data-eventchip][data-eventid], .uFexlc > [data-eventid]');
+
 const englishDate = en.parseDateFromString('May 5 report, Tuesday, June 30, 2026 ⋅ 3:30 PM');
 assert.strictEqual(englishDate.getFullYear(), 2026);
 assert.strictEqual(englishDate.getMonth(), 5);
 assert.strictEqual(englishDate.getDate(), 30);
+const englishDateWithYearInLocation = en.parseDateFromString('15:20 to 16:20, 活動: CHIIKAWA DAYS 吉伊卡哇 台北特展, Roberto Tsai, Accepted, Location: 華山1914文創園區 東2C館, July 7, 2026');
+assert.strictEqual(englishDateWithYearInLocation.getFullYear(), 2026);
+assert.strictEqual(englishDateWithYearInLocation.getMonth(), 6);
+assert.strictEqual(englishDateWithYearInLocation.getDate(), 7);
+
+const es = loadContentScript('es-ES');
+const spanishDateWithYearInLocation = es.parseDateFromString('15:20 a 16:20, Evento, Ubicación: 華山1914文創園區, 7 de julio de 2026');
+assert.strictEqual(spanishDateWithYearInLocation.getFullYear(), 2026);
+assert.strictEqual(spanishDateWithYearInLocation.getMonth(), 6);
+assert.strictEqual(spanishDateWithYearInLocation.getDate(), 7);
 const englishTime = en.parseTimeFromString('May 5 report, Tuesday, June 30, 2026 ⋅ 3:30 PM');
 assert.strictEqual(englishTime.hours, 15);
 assert.strictEqual(englishTime.minutes, 30);
